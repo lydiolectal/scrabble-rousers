@@ -17,6 +17,15 @@ class TrieNode():
                 self.children[curletter] = TrieNode()
             self.children[curletter].add_entry(s[1:])
 
+    def contains(self, s):
+        if s == "":
+            return True
+        curletter = s[0]
+        if curletter in self.children:
+            return self.children[curletter].contains(s[1:])
+        else:
+            return False
+
 class TestTrie(unittest.TestCase):
     def test_twoletter(self):
         t = TrieNode()
@@ -36,7 +45,7 @@ class TestTrie(unittest.TestCase):
         self.assertFalse(s_node.is_word)
         self.assertFalse(u_node.is_word)
         self.assertTrue(q_node.is_word)
-        self.assertEquals(len(t.children), 1)
+        self.assertEqual(len(t.children), 1)
 
     def test_dictionary(self):
         # instantiate dictionary trie
@@ -51,4 +60,9 @@ class TestTrie(unittest.TestCase):
         result = []
         for key in aa_node.children.keys():
             result.append(key)
-        self.assertEquals(result, ["h", "l", "r", "s"])
+        self.assertEqual(result, ["h", "l", "r", "s"])
+
+    def test_contains(self):
+        t = TrieNode()
+        t.add_entry("undulate")
+        self.assertTrue(t.contains("undulate"))

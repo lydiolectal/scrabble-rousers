@@ -58,6 +58,15 @@ class TrieNode:
                 self.children[curletter] = TrieNode()
             self.children[curletter].insert(s[1:])
 
+    def contains(self, s):
+        if s == "":
+            return True
+        curletter = s[0]
+        if curletter in self.children:
+            return self.children[curletter].contains(s[1:])
+        else:
+            return False
+
 # instantiate dictionary trie
 words = open("scrabble_dictionary.txt").read().lower().splitlines()
 trieRoot = TrieNode()
