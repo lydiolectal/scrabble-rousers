@@ -11,37 +11,38 @@ class Ai:
 
     def make_move(self, board):
         pass
+        # positions = get_positions()
+        # words = get_words(positions)
 
-    # TODO:
-    # clean up if logic
-    # don't iterate over multiples of the same tile
     def get_words(self, position, node, tiles, s):
         # while we still have spaces left to fill
         if position != []:
             curspot = position[0]
-            # if letter is specified, pick that node to descend
+
             if curspot != None:
                 if curspot in node.children:
-                    s = s + curspot
-                    return self.get_words(position[1:], node.children[curspot], tiles, s)
+                    temps = s + curspot
+                    child_words = self.get_words(position[1:], node.children[curspot], tiles, temps)
+                    return child_words
                 else:
-                    return
-            # if unspecified, descend all nodes corresponding with tiles
+                    return []
+
             else:
+                to_traverse = list(set(tiles))
                 words = []
-                for tile in tiles:
-                    if tile in node.children:
-                        temps = s + tile
-                        # print(temps)
-                        temptiles = tiles[:]
-                        temptiles.remove(tile)
-                        word = self.get_words(position[1:], node.children[tile], temptiles, temps)
-                        if word != None:
-                            words.extend(word)
+                for next in to_traverse:
+                    if next in node.children:
+                        temps = s + next
+                        remaining_tiles = tiles[:]
+                        remaining_tiles.remove(next)
+                        child_words = self.get_words(position[1:], node.children[next], remaining_tiles, temps)
+                        if child_words != []:
+                            words.extend(child_words)
                 return words
         else:
             if node.is_word:
                 return [s]
+            else: return []
 
 class Board:
     def __init__(self):
@@ -139,5 +140,6 @@ class TestAi(unittest.TestCase):
 
         player = Ai()
         actual = player.get_words(position, trieRoot, player.tiles, "")
-        print(actual)
-        self.assertEqual(set(expected), set(actual))
+
+        self.assertEqual(sorted(actual), sorted(expected))
+        self.assertEqual(len(expected), len(actual))
