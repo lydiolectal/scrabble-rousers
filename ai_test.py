@@ -1,18 +1,18 @@
 import unittest
 
-
 import random, string
 
 class Ai:
     def __init__(self):
         # self.tiles = [random.choice(string.ascii_lowercase) for _ in range(7)]
-        self.tiles = ["c", "a", "s", "u", "k", "m", "p", "e", "d", "r", "s", "i",
-                        "t", "o"]
+        self.tiles = ["c", "a", "s", "u", "k", "m", "p", "e", "d", "r", "s",
+        "i", "t", "o"]
 
     def make_move(self, board):
         pass
-        # positions = get_positions()
+        # positions, coord = get_positions()
         # words = get_words(positions)
+        # play each word on temp board, return the word that maximizes score.
 
     def get_words(self, position, node, tiles, s):
         # while we still have spaces left to fill
@@ -22,7 +22,8 @@ class Ai:
             if curspot != None:
                 if curspot in node.children:
                     temps = s + curspot
-                    child_words = self.get_words(position[1:], node.children[curspot], tiles, temps)
+                    child_words = self.get_words(position[1:],
+                        node.children[curspot], tiles, temps)
                     return child_words
                 else:
                     return []
@@ -35,7 +36,8 @@ class Ai:
                         temps = s + next
                         remaining_tiles = tiles[:]
                         remaining_tiles.remove(next)
-                        child_words = self.get_words(position[1:], node.children[next], remaining_tiles, temps)
+                        child_words = self.get_words(position[1:],
+                            node.children[next], remaining_tiles, temps)
                         if child_words != []:
                             words.extend(child_words)
                 return words
@@ -80,7 +82,6 @@ class Coord:
         self.x = x
         self.y = y
 
-
 class TrieNode:
     def __init__(self):
         self.is_word = False
@@ -104,21 +105,54 @@ class TrieNode:
         else:
             return False
 
+class CrosscheckSquare:
+    def __init__(self):
+        self.h_check = set()
+        self.v_check = set()
+
+class Crosscheck:
+    def __init__(self):
+        self.rows = [[CrosscheckSquare() for _ in range(15)] for _ in range(15)]
+
+    def get_h_check(self, coord):
+        return self.rows[coord.y][coord.x].h_check
+
+    def get_v_check(self, coord):
+        return self.rows[coord.y][coord.x].v_check
+
+    # update appropriate crosscheck sets for a new word with coordinates coord,
+    # position position, horizontal orientation ish.
+    def update(self, coord, position, ish):
+        # TODO: this.
+        if ish:
+
+            # for each letter, check if top or bottom is edge or filled
+            # if not, feed [None] + position or position + [None]. splice
+            # for the set of legal characters.
+
+            # for top and bottom, check if preceding or following is edge/filled
+            # if not, set those checks to be eq to top for left and bottom for r
+            pass
+        else:
+            # same thing, but replace top/bottom with left/right and v-versa.
+            pass
+
+
 class TestAi(unittest.TestCase):
 
-    def test_getpositions(self):
-
-        # select a start word
-        startword = "cabriole"
-
-        # instantiate board and populate w first word
-        board = Board()
-        startCoord = Coord(3, 7)
-        board.place_word(startword, startCoord, True)
-        # board.print_b()
-
-        player = Ai()
-        self.assertTrue(True)
+    # def test_getpositions(self):
+    #
+    #     # select a start word
+    #     startword = "cabriole"
+    #
+    #     # instantiate board and populate w first word
+    #     board = Board()
+    #     startCoord = Coord(3, 7)
+    #     board.place_word(startword, startCoord, True)
+    #     board.print_b()
+    #
+    #     player = Ai()
+    #     self.assertTrue(True)
 
     def test_getwords(self):
         # instantiate dictionary trie
@@ -143,3 +177,21 @@ class TestAi(unittest.TestCase):
 
         self.assertEqual(sorted(actual), sorted(expected))
         self.assertEqual(len(expected), len(actual))
+
+    def test_crosscheck(self):
+        crosscheck_board = Crosscheck()
+
+        testCoord = Coord(8, 4)
+        # should be empty set
+        self.assertEqual(crosscheck_board.get_v_check(testCoord), set())
+
+        startword = "cabriole"
+        board = Board()
+        startCoord = Coord(3, 7)
+        board.place_word(startword, startCoord, True)
+
+        # TODO: call update!
+        # after placing "cabriole" at (7,3), v crosscheck for (8, 4) should be:
+        expected = {'i', 's', 'e', 'w', 'g', 'm', 'n', 'l', 'd', 'a', 'y', 'x',
+                    't', 'h', 'r'}
+        self.assertEqual(crosscheck_board.get_v_check(testCoord), expected)
