@@ -1,6 +1,99 @@
 import unittest
-
 import random, string
+
+class Coord:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class CrosscheckSquare:
+    def __init__(self):
+        self.h_check = set()
+        self.v_check = set()
+
+class Board:
+    def __init__(self):
+        # board for tiles that have been played; tracks game state
+        self.tiles = [[None] * 15 for _ in range(15)]
+        # board for crosschecking adjacent spaces of preexisting words.
+        self.crosschecks = [[CrosscheckSquare() for _ in range(15)] for _ in range(15)]
+
+    # cross check board methods
+    def get_h_check(self, coord):
+        return self.crosschecks[coord.y][coord.x].h_check
+
+    def get_v_check(self, coord):
+        return self.crosschecks[coord.y][coord.x].v_check
+
+    # update appropriate crosscheck sets for a new word with coordinates coord,
+    # position position, horizontal orientation ish.
+    def update(self, coord, position, ish):
+        # TODO: this.
+        if ish:
+            # for first, check if left is edge or filled
+
+
+            # if not, feed [None] + position.
+            # for each letter, check if top or bottom is edge or filled
+            # if not, feed [None] + square or square + [None]. splice
+            # for the set of legal characters.
+            # for first, check if left is edge or filled
+            # if not, feed position + [None]
+
+            pass
+        else:
+            # same thing, but replace top/bottom with left/right and v-versa.
+            pass
+
+    # tile board methods
+    def print_b(self):
+        for row in self.tiles:
+            for col in row:
+                if col == None:
+                    print(" . ", end = "")
+                else:
+                    print(f" {col} ", end = "")
+            print()
+
+    # assume that no words go out of range.
+    def place_word(self, word, coord, ish):
+        if word == "":
+            return
+        self.place_letter(word[0], coord)
+        if ish:
+            coord = Coord(coord.x+1, coord.y)
+        else:
+            coord = Coord(coord.x, coord.y+1)
+        self.place_word(word[1:], coord, ish)
+
+    def place_letter(self, letter, coord):
+        if self.tiles[coord.y][coord.x] != None:
+            sys.exit("f({coord.x},{coord.y}) has been filled.")
+
+        self.tiles[coord.y][coord.x] = letter
+
+class TrieNode:
+    def __init__(self):
+        self.is_word = False
+        self.children = {}
+
+    def insert(self, s):
+        if s == "":
+            self.is_word = True
+        else:
+            curletter = s[0]
+            if curletter not in self.children:
+                self.children[curletter] = TrieNode()
+            self.children[curletter].insert(s[1:])
+
+    def contains(self, s):
+        if s == "":
+            return True
+        curletter = s[0]
+        if curletter in self.children:
+            return self.children[curletter].contains(s[1:])
+        else:
+            return False
 
 class Ai:
     def __init__(self):
@@ -45,97 +138,6 @@ class Ai:
             if node.is_word:
                 return [s]
             else: return []
-
-class Board:
-    def __init__(self):
-        self.rows = [[None] * 15 for _ in range(15)]
-
-    def print_b(self):
-        for row in self.rows:
-            for col in row:
-                if col == None:
-                    print(" . ", end = "")
-                else:
-                    print(f" {col} ", end = "")
-            print()
-
-    # assume that no words go out of range.
-    def place_word(self, word, coord, ish):
-        if word == "":
-            return
-        self.place_letter(word[0], coord)
-        if ish:
-            coord = Coord(coord.x+1, coord.y)
-        else:
-            coord = Coord(coord.x, coord.y+1)
-        self.place_word(word[1:], coord, ish)
-
-    def place_letter(self, letter, coord):
-        if self.rows[coord.y][coord.x] != None:
-            sys.exit("f({coord.x},{coord.y}) has been filled.")
-
-        self.rows[coord.y][coord.x] = letter
-
-
-class Coord:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-class TrieNode:
-    def __init__(self):
-        self.is_word = False
-        self.children = {}
-
-    def insert(self, s):
-        if s == "":
-            self.is_word = True
-        else:
-            curletter = s[0]
-            if curletter not in self.children:
-                self.children[curletter] = TrieNode()
-            self.children[curletter].insert(s[1:])
-
-    def contains(self, s):
-        if s == "":
-            return True
-        curletter = s[0]
-        if curletter in self.children:
-            return self.children[curletter].contains(s[1:])
-        else:
-            return False
-
-class CrosscheckSquare:
-    def __init__(self):
-        self.h_check = set()
-        self.v_check = set()
-
-class Crosscheck:
-    def __init__(self):
-        self.rows = [[CrosscheckSquare() for _ in range(15)] for _ in range(15)]
-
-    def get_h_check(self, coord):
-        return self.rows[coord.y][coord.x].h_check
-
-    def get_v_check(self, coord):
-        return self.rows[coord.y][coord.x].v_check
-
-    # update appropriate crosscheck sets for a new word with coordinates coord,
-    # position position, horizontal orientation ish.
-    def update(self, coord, position, ish):
-        # TODO: this.
-        if ish:
-
-            # for each letter, check if top or bottom is edge or filled
-            # if not, feed [None] + position or position + [None]. splice
-            # for the set of legal characters.
-
-            # for top and bottom, check if preceding or following is edge/filled
-            # if not, set those checks to be eq to top for left and bottom for r
-            pass
-        else:
-            # same thing, but replace top/bottom with left/right and v-versa.
-            pass
 
 
 class TestAi(unittest.TestCase):
