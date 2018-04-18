@@ -61,72 +61,56 @@ class Board:
     # update appropriate crosscheck sets for a new word with coordinates coord,
     # position position, horizontal orientation ish.
     def update_crosschecks(self, coord, length, ish, trie):
-        curY = coord.y
-        curX = coord.x
-        if not curX == 0 and self.tiles[curY][curX-1] == None:
-            template = self.update_helper_h(Coord(curX - 1, curY))
-            cross_set = trie.get_chars(template, trie)
-            self.crosschecks[curY][curX-1].h_check = set(cross_set)
+        if ish:
+            curY = coord.y
+            curX = coord.x
+            if not curX == 0 and self.tiles[curY][curX-1] == None:
+                template = self.update_helper_h(Coord(curX - 1, curY))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY][curX-1].h_check = set(cross_set)
 
-        for curX in range(coord.x, coord.x + length):
-            self.crosschecks[curY][curX].h_check = set()
-            self.crosschecks[curY][curX].v_check = set()
+            for curX in range(coord.x, coord.x + length):
+                self.crosschecks[curY][curX].h_check = set()
+                self.crosschecks[curY][curX].v_check = set()
 
-            if coord.y > 0:
-                template = self.update_helper_v(Coord(curX, curY-1))
+                if coord.y > 0:
+                    template = self.update_helper_v(Coord(curX, curY-1))
+                    cross_set = trie.get_chars(template, trie)
+                    self.crosschecks[curY-1][curX].v_check = set(cross_set)
+                if coord.y < 14:
+                    template = self.update_helper_v(Coord(curX, curY+1))
+                    cross_set = trie.get_chars(template, trie)
+                    self.crosschecks[curY+1][curX].v_check = set(cross_set)
+
+            if not curX == 14 and self.tiles[curY][curX+1] == None:
+                template = self.update_helper_h(Coord(curX + 1, curY))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY][curX+1].h_check = set(cross_set)
+        else:
+            curY = coord.y
+            curX = coord.x
+            if not curY == 0 and self.tiles[curY-1][curX] == None:
+                template = self.update_helper_v(Coord(curX, curY - 1))
                 cross_set = trie.get_chars(template, trie)
                 self.crosschecks[curY-1][curX].v_check = set(cross_set)
-            if coord.y < 14:
-                template = self.update_helper_v(Coord(curX, curY+1))
+
+            for curY in range(coord.y, coord.y + length):
+                self.crosschecks[curY][curX].h_check = set()
+                self.crosschecks[curY][curX].v_check = set()
+
+                if coord.x > 0:
+                    template = self.update_helper_h(Coord(curX - 1, curY))
+                    cross_set = trie.get_chars(template, trie)
+                    self.crosschecks[curY][curX - 1].h_check = set(cross_set)
+                if coord.x < 14:
+                    template = self.update_helper_h(Coord(curX + 1, curY))
+                    cross_set = trie.get_chars(template, trie)
+                    self.crosschecks[curY][curX + 1].h_check = set(cross_set)
+
+            if not curY == 14 and self.tiles[curY + 1][curX] == None:
+                template = self.update_helper_v(Coord(curX, curY + 1))
                 cross_set = trie.get_chars(template, trie)
                 self.crosschecks[curY+1][curX].v_check = set(cross_set)
-
-        if not curX == 14 and self.tiles[curY][curX+1] == None:
-            template = self.update_helper_h(Coord(curX + 1, curY))
-            cross_set = trie.get_chars(template, trie)
-            self.crosschecks[curY][curX+1].h_check = set(cross_set)
-
-        # if ish:
-        #     position = [self.tiles[coord.y][x] for x in range(coord.x, coord.x+length)]
-        #     # for first, check if left is edge or filled
-        #     if not(coord.x == 0) and self.tiles[coord.y][coord.x - 1] == None:
-        #         cross_set = trie.get_words([None]+position, trie)
-        #         cross_set = [word[0] for word in cross_set]
-        #         existing_set = self.crosschecks[coord.x-1][coord.y].h_check
-        #         self.crosschecks[coord.x-1][coord.y].h_check =
-        #                 existing_set.intersection(cross_set)
-        #
-        #     # for each letter, check if top or bottom is edge or filled
-        #     # if not, feed [None] + square or square + [None]. splice
-        #     # for the set of legal characters.
-        #     if coord.y == 0:
-        #         for x in range(coord.x, coord.x+length):
-        #             if self.tiles[coord.y+1][x] == None:
-        #                 cross_set_bottom = trie.get_words([self.tiles[coord.y+1][x], None], trie)
-        #                 cross_set_bottom = [word[1] for word in cross_set_bottom]
-        #                 existing_set = self.crosschecks[coord.y+1][x].v_check
-        #                 self.crosschecks[coord.y+1][x].v_check = existing_set.intersection(cross_set)
-        #             else:
-        #                 self.crosschecks[coord.y+1][x].v_check = set()
-        #
-        #     elif coord.y == 14:
-        #         for x in range(coord.x, coord.x+length):
-        #             if self.tiles[coord.y-1][x] == None:
-        #                 cross_set_bottom = trie.get_words([self.tiles[coord.y-1][x], None], trie)
-        #                 cross_set_bottom = [word[1] for word in cross_set_bottom]
-        #                 existing_set = self.crosschecks[coord.y-1][x].v_check
-        #                 self.crosschecks[coord.y-1][x].v_check = existing_set.intersection(cross_set)
-        #             else:
-        #                 self.crosschecks[coord.y-1][x].v_check = set()
-        #     else:
-        #
-        #     # for first, check if left is edge or filled
-        #     # if not, feed position + [None]
-        #
-        #     pass
-        # else:
-        #     # same thing, but replace top/bottom with left/right and v-versa.
-        #     pass
 
     # tile board methods
     def print_b(self):
@@ -342,13 +326,17 @@ class TestAi(unittest.TestCase):
         startWord = "cabriole"
         startCoord = Coord(3, 7)
         board.place_word(startWord, startCoord, True)
-
         board.update_crosschecks(startCoord, len(startWord), True, trieRoot)
         board.print_b()
         # after placing "cabriole" at (7,3), v crosscheck for (8, 4) should be:
         expected = {'i', 's', 'e', 'w', 'g', 'm', 'n', 'l', 'd', 'a', 'y', 'x',
                     't', 'h', 'r'}
         self.assertEqual(board.get_v_check(testCoord), expected)
+
+        board = Board()
+        board.place_word(startWord, Coord(7, 3), False)
+        board.update_crosschecks(Coord(7, 3), len(startWord), False, trieRoot)
+        self.assertEqual(board.get_h_check(Coord(8, 4)), expected)
 
     def test_getchar(self):
         with open("scrabble_dictionary.txt") as f:
