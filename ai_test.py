@@ -20,6 +20,32 @@ class Board:
     def __init__(self):
         self.tiles = [[None] * 15 for _ in range(15)]
         self.crosschecks = [[CrosscheckSquare() for _ in range(15)] for _ in range(15)]
+        self.neighbors = [[False] * 15 for _ in range(15)]
+
+    def update_neighbors(self, coord, length, ish):
+        curX, curY = coord.x, coord.y
+        if ish:
+            if curX != 0 and self.tiles[curY][curX-1] == None:
+                self.neighbors[curY][curX-1] = True
+            for curX in range(coord.x, coord.x + length):
+                self.neighbors[curY][curX] = -1
+                if curY > 0:
+                    self.neighbors[curY-1][curX] = True
+                if curY < 14:
+                    self.neighbors[curY+1][curX] = True
+            if curX != 14 and self.tiles[curY][curX+1] == None:
+                self.neighbors[curY][curX+1] = True
+        else:
+            if curY != 0 and self.tiles[curY-1][curX] == None:
+                self.neighbors[curY-1][curX] = True
+            for curY in range(coord.y, coord.y + length):
+                self.neighbors[curY][curX] = -1
+                if curX > 0:
+                    self.neighbors[curY][curX-1] = True
+                if curX < 14:
+                    self.neighbors[curY][curX+1] = True
+            if curY != 14 and self.tiles[curY+1][curX] == None:
+                self.neighbors[curY+1][curX] = True
 
     # cross check board methods
     def get_h_check(self, coord):
@@ -64,7 +90,7 @@ class Board:
         if ish:
             curY = coord.y
             curX = coord.x
-            if not curX == 0 and self.tiles[curY][curX-1] == None:
+            if curX != 0 and self.tiles[curY][curX-1] == None:
                 template = self.update_helper_h(Coord(curX - 1, curY))
                 cross_set = trie.get_chars(template, trie)
                 self.crosschecks[curY][curX-1].h_check = set(cross_set)
@@ -89,7 +115,7 @@ class Board:
         else:
             curY = coord.y
             curX = coord.x
-            if not curY == 0 and self.tiles[curY-1][curX] == None:
+            if curY != 0 and self.tiles[curY-1][curX] == None:
                 template = self.update_helper_v(Coord(curX, curY - 1))
                 cross_set = trie.get_chars(template, trie)
                 self.crosschecks[curY-1][curX].v_check = set(cross_set)
@@ -349,3 +375,23 @@ class TestAi(unittest.TestCase):
         self.assertEqual(trieRoot.get_chars(template, trieRoot), ["r"])
         template = ["c", "a", None]
         print(trieRoot.get_chars(template, trieRoot))
+
+    def test_update_neighbors(self):
+        board = Board()
+        testCoord = Coord(4, 8)
+        startWord = "cabriole"
+        startCoord = Coord(3, 7)
+        board.update_neighbors(startCoord, len(startWord), True)
+        # not a neighbor
+        self.assertEqual(board.neighbors[9][4], False)
+        # occupied
+        self.assertEqual(board.neighbors[7][6], -1)
+        # should be neighbors
+        self.assertEqual(board.neighbors[7][2], True)
+        self.assertEqual(board.neighbors[6][9], True)
+        self.assertEqual(board.neighbors[8][9], True)
+        self.assertEqual(board.neighbors[7][11], True)
+
+    # test that board gets proper start positions
+    def test_get_starts(self):
+        pass
