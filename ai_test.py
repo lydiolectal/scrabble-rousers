@@ -21,31 +21,12 @@ class Board:
         self.tiles = [[None] * 15 for _ in range(15)]
         self.crosschecks = [[CrosscheckSquare() for _ in range(15)] for _ in range(15)]
         self.neighbors = [[False] * 15 for _ in range(15)]
+        self.neighbors[7][7] = True
+        self.neighbors_set = set()
 
-    def update_neighbors(self, coord, length, ish):
-        curX, curY = coord.x, coord.y
-        if ish:
-            if curX != 0 and self.tiles[curY][curX-1] == None:
-                self.neighbors[curY][curX-1] = True
-            for curX in range(coord.x, coord.x + length):
-                self.neighbors[curY][curX] = -1
-                if curY > 0:
-                    self.neighbors[curY-1][curX] = True
-                if curY < 14:
-                    self.neighbors[curY+1][curX] = True
-            if curX != 14 and self.tiles[curY][curX+1] == None:
-                self.neighbors[curY][curX+1] = True
-        else:
-            if curY != 0 and self.tiles[curY-1][curX] == None:
-                self.neighbors[curY-1][curX] = True
-            for curY in range(coord.y, coord.y + length):
-                self.neighbors[curY][curX] = -1
-                if curX > 0:
-                    self.neighbors[curY][curX-1] = True
-                if curX < 14:
-                    self.neighbors[curY][curX+1] = True
-            if curY != 14 and self.tiles[curY+1][curX] == None:
-                self.neighbors[curY+1][curX] = True
+    def get_starts(self, num_tiles):
+        # TODO
+        pass
 
     # cross check board methods
     def get_h_check(self, coord):
@@ -53,6 +34,73 @@ class Board:
 
     def get_v_check(self, coord):
         return self.crosschecks[coord.y][coord.x].v_check
+
+    def update_state(self, coord, length, ish, trie):
+        curX, curY = coord.x, coord.y
+        if ish:
+            if curX != 0 and self.tiles[curY][curX-1] == None:
+                # neighbors
+                self.neighbors[curY][curX-1] = True
+                self.neighbors_set.add(Coord(curX-1, curY))
+                # crosschecks
+                template = self.update_helper_h(Coord(curX - 1, curY))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY][curX-1].h_check = set(cross_set)
+            for curX in range(coord.x, coord.x + length):
+                self.update_h_state(curX, curY, template, trie)
+            if curX != 14 and self.tiles[curY][curX+1] == None:
+                self.neighbors[curY][curX+1] = True
+                self.neighbors_set.add(Coord(curX+1, curY))
+                template = self.update_helper_h(Coord(curX + 1, curY))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY][curX+1].h_check = set(cross_set)
+        else:
+            if curY != 0 and self.tiles[curY-1][curX] == None:
+                self.neighbors[curY-1][curX] = True
+                self.neighbors_set.add(Coord(curX, curY-1))
+                template = self.update_helper_v(Coord(curX, curY - 1))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY-1][curX].v_check = set(cross_set)
+            for curY in range(coord.y, coord.y + length):
+                self.update_v_state(curX, curY, template, trie)
+            if curY != 14 and self.tiles[curY+1][curX] == None:
+                self.neighbors[curY+1][curX] = True
+                self.neighbors_set.add(Coord(curX, curY+1))
+                template = self.update_helper_v(Coord(curX, curY + 1))
+                cross_set = trie.get_chars(template, trie)
+                self.crosschecks[curY+1][curX].v_check = set(cross_set)
+
+    def update_h_state(self, curX, curY, template, trie):
+        self.crosschecks[curY][curX].h_check = set()
+        self.crosschecks[curY][curX].v_check = set()
+        if curY > 0:
+            self.neighbors[curY-1][curX] = True
+            self.neighbors_set.add(Coord(curX, curY-1))
+            template = self.update_helper_v(Coord(curX, curY-1))
+            cross_set = trie.get_chars(template, trie)
+            self.crosschecks[curY-1][curX].v_check = set(cross_set)
+        if curY < 14:
+            self.neighbors[curY+1][curX] = True
+            self.neighbors_set.add(Coord(curX, curY+1))
+            template = self.update_helper_v(Coord(curX, curY+1))
+            cross_set = trie.get_chars(template, trie)
+            self.crosschecks[curY+1][curX].v_check = set(cross_set)
+
+    def update_v_state(self, curX, curY, template, trie):
+        self.crosschecks[curY][curX].h_check = set()
+        self.crosschecks[curY][curX].v_check = set()
+        if curX > 0:
+            self.neighbors[curY][curX-1] = True
+            self.neighbors_set.add(Coord(curX-1, curY))
+            template = self.update_helper_h(Coord(curX - 1, curY))
+            cross_set = trie.get_chars(template, trie)
+            self.crosschecks[curY][curX - 1].h_check = set(cross_set)
+        if curX < 14:
+            self.neighbors[curY][curX+1] = True
+            self.neighbors_set.add(Coord(curX+1, curY))
+            template = self.update_helper_h(Coord(curX + 1, curY))
+            cross_set = trie.get_chars(template, trie)
+            self.crosschecks[curY][curX + 1].h_check = set(cross_set)
 
     def update_helper_h(self, coord):
         curX, curY = coord.x-1, coord.y
@@ -84,60 +132,6 @@ class Board:
             curY += 1
         return template
 
-    # update appropriate crosscheck sets for a new word with coordinates coord,
-    # position position, horizontal orientation ish.
-    def update_crosschecks(self, coord, length, ish, trie):
-        if ish:
-            curY = coord.y
-            curX = coord.x
-            if curX != 0 and self.tiles[curY][curX-1] == None:
-                template = self.update_helper_h(Coord(curX - 1, curY))
-                cross_set = trie.get_chars(template, trie)
-                self.crosschecks[curY][curX-1].h_check = set(cross_set)
-
-            for curX in range(coord.x, coord.x + length):
-                self.crosschecks[curY][curX].h_check = set()
-                self.crosschecks[curY][curX].v_check = set()
-
-                if coord.y > 0:
-                    template = self.update_helper_v(Coord(curX, curY-1))
-                    cross_set = trie.get_chars(template, trie)
-                    self.crosschecks[curY-1][curX].v_check = set(cross_set)
-                if coord.y < 14:
-                    template = self.update_helper_v(Coord(curX, curY+1))
-                    cross_set = trie.get_chars(template, trie)
-                    self.crosschecks[curY+1][curX].v_check = set(cross_set)
-
-            if not curX == 14 and self.tiles[curY][curX+1] == None:
-                template = self.update_helper_h(Coord(curX + 1, curY))
-                cross_set = trie.get_chars(template, trie)
-                self.crosschecks[curY][curX+1].h_check = set(cross_set)
-        else:
-            curY = coord.y
-            curX = coord.x
-            if curY != 0 and self.tiles[curY-1][curX] == None:
-                template = self.update_helper_v(Coord(curX, curY - 1))
-                cross_set = trie.get_chars(template, trie)
-                self.crosschecks[curY-1][curX].v_check = set(cross_set)
-
-            for curY in range(coord.y, coord.y + length):
-                self.crosschecks[curY][curX].h_check = set()
-                self.crosschecks[curY][curX].v_check = set()
-
-                if coord.x > 0:
-                    template = self.update_helper_h(Coord(curX - 1, curY))
-                    cross_set = trie.get_chars(template, trie)
-                    self.crosschecks[curY][curX - 1].h_check = set(cross_set)
-                if coord.x < 14:
-                    template = self.update_helper_h(Coord(curX + 1, curY))
-                    cross_set = trie.get_chars(template, trie)
-                    self.crosschecks[curY][curX + 1].h_check = set(cross_set)
-
-            if not curY == 14 and self.tiles[curY + 1][curX] == None:
-                template = self.update_helper_v(Coord(curX, curY + 1))
-                cross_set = trie.get_chars(template, trie)
-                self.crosschecks[curY+1][curX].v_check = set(cross_set)
-
     # tile board methods
     def print_b(self):
         for row in self.tiles:
@@ -148,22 +142,21 @@ class Board:
                     print(f" {col} ", end = "")
             print()
 
-    # assume that no words go out of range.
-    def place_word(self, word, coord, ish):
-        if word == "":
+    def place_word(self, word_template, coord, ish):
+        if len(word_template) == 0:
             return
-        self.place_letter(word[0], coord)
+        self.place_letter(word_template[0], coord)
         if ish:
             coord = Coord(coord.x+1, coord.y)
         else:
             coord = Coord(coord.x, coord.y+1)
-        self.place_word(word[1:], coord, ish)
+        self.place_word(word_template[1:], coord, ish)
 
     def place_letter(self, letter, coord):
-        if self.tiles[coord.y][coord.x] != None:
-            sys.exit("f({coord.x},{coord.y}) has been filled.")
-
-        self.tiles[coord.y][coord.x] = letter
+        if letter != None:
+            if self.tiles[coord.y][coord.x] != None:
+                sys.exit("f({coord.x},{coord.y}) has been filled.")
+            self.tiles[coord.y][coord.x] = letter
 
 class TrieNode:
     def __init__(self):
@@ -190,6 +183,18 @@ class TrieNode:
 
     # get words without tile constraints
     def get_words(self, template, node, s = ""):
+        """
+        Gets words that can be played in a given span on the board.
+        Parameters:
+        -----------
+        template: type
+        node: type
+
+        Returns:
+        --------
+        list_of_strings: type
+
+        """
         # while we still have spaces left to fill
         if template != []:
             curspot = template[0]
@@ -288,23 +293,15 @@ class Ai:
 
     def make_move(self, board):
         pass
-    def get_positions(self, board):
-        pass
+
 class TestAi(unittest.TestCase):
 
-    # def test_getpositions(self):
-    #
-    #     # select a start word
-    #     startword = "cabriole"
-    #
-    #     # instantiate board and populate w first word
-    #     board = Board()
-    #     startCoord = Coord(3, 7)
-    #     board.place_word(startword, startCoord, True)
-    #     board.print_b()
-    #
-    #     player = Ai()
-    #     self.assertTrue(True)
+    def test_place_word(self):
+        word_template = [c for c in "cabr"] + [None] + [c for c in "iole"]
+        startCoord = Coord(3, 7)
+        board = Board()
+        board.place_word(word_template, startCoord, True)
+        self.assertEqual(board.tiles[7][7], None)
 
     def test_getwords(self):
         # instantiate dictionary trie
@@ -352,7 +349,7 @@ class TestAi(unittest.TestCase):
         startWord = "cabriole"
         startCoord = Coord(3, 7)
         board.place_word(startWord, startCoord, True)
-        board.update_crosschecks(startCoord, len(startWord), True, trieRoot)
+        board.update_state(startCoord, len(startWord), True, trieRoot)
         board.print_b()
         # after placing "cabriole" at (7,3), v crosscheck for (8, 4) should be:
         expected = {'i', 's', 'e', 'w', 'g', 'm', 'n', 'l', 'd', 'a', 'y', 'x',
@@ -361,7 +358,7 @@ class TestAi(unittest.TestCase):
 
         board = Board()
         board.place_word(startWord, Coord(7, 3), False)
-        board.update_crosschecks(Coord(7, 3), len(startWord), False, trieRoot)
+        board.update_state(Coord(7, 3), len(startWord), False, trieRoot)
         self.assertEqual(board.get_h_check(Coord(8, 4)), expected)
 
     def test_getchar(self):
@@ -374,23 +371,32 @@ class TestAi(unittest.TestCase):
         template = ["c", "a", "b", None, "i", "o", "l", "e"]
         self.assertEqual(trieRoot.get_chars(template, trieRoot), ["r"])
         template = ["c", "a", None]
-        print(trieRoot.get_chars(template, trieRoot))
+        # print(trieRoot.get_chars(template, trieRoot))
 
     def test_update_neighbors(self):
+
+        with open("scrabble_dictionary.txt") as f:
+            words = f.read().lower().splitlines()
+        trieRoot = TrieNode()
+        for word in words:
+            trieRoot.insert(word)
+
         board = Board()
         testCoord = Coord(4, 8)
         startWord = "cabriole"
         startCoord = Coord(3, 7)
-        board.update_neighbors(startCoord, len(startWord), True)
+        board.update_state(startCoord, len(startWord), True, trieRoot)
         # not a neighbor
         self.assertEqual(board.neighbors[9][4], False)
         # occupied
-        self.assertEqual(board.neighbors[7][6], -1)
+        self.assertEqual(board.neighbors[7][6], False)
         # should be neighbors
         self.assertEqual(board.neighbors[7][2], True)
         self.assertEqual(board.neighbors[6][9], True)
         self.assertEqual(board.neighbors[8][9], True)
         self.assertEqual(board.neighbors[7][11], True)
+
+        print([f"{(neighbor.x, neighbor.y)}" for neighbor in board.neighbors_set])
 
     # test that board gets proper start positions
     def test_get_starts(self):
