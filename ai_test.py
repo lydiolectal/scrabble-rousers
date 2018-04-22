@@ -1,5 +1,6 @@
 import unittest
 import random, string
+times_called = 0
 
 class Coord:
     def __init__(self, x, y):
@@ -8,10 +9,11 @@ class Coord:
 
 # stores a start position and the template associated with it.
 class StartSequence:
-    def __init__(self, x, y, template):
+    def __init__(self, x, y, template, ish):
         self.x = x
         self.y = y
         self.template = template
+        self.ish = ish
 
 class CrosscheckSquare:
     def __init__(self):
@@ -89,7 +91,7 @@ class Board:
             template = [self.tiles[startY][x] for x in range(startX, 15)]
         else:
             template = [self.tiles[y][startX] for y in range(startY, 15)]
-        return StartSequence(startX, startY, template)
+        return StartSequence(startX, startY, template, ish)
 
     # cross check board methods
     def get_h_check(self, coord):
@@ -353,10 +355,60 @@ class TrieNode:
                 return [s]
             else: return []
 
-        # TODO: add tile constraint
-        def get_words_constrained(self, start_seq, node, board, s = ""):
-            
+    def get_words_constrained(self, start_seq, node, tiles, board, s = "", s_list = None):
+        global times_called
+        times_called += 1
+        if s_list is None:
+            s_list = []
+        curX, curY = start_seq.x, start_seq.y
+        template = start_seq.template
+        ish = start_seq.ish
+        print(f"({curX}, {curY})\n{template}")
 
+        if template != []:
+            curspot = template[0]
+
+            # otherwise, descend trie
+            if curspot is not None:
+                if curspot in node.children:
+                    temps = s + curspot
+                    if ish:
+                        temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
+                    else:
+                        temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
+
+                    child_words = self.get_words_constrained(temp_start_seq,
+                        node.children[curspot], tiles, board, temps, s_list)
+                    if child_words != []:
+                        s_list.extend(child_words)
+                return s_list
+
+            else:
+                # check if this is a valid terminal node
+                if node.is_word:
+                    s_list.append(s)
+
+                crosscheck = board.crosschecks[curY][curX].v_check if ish else board.crosschecks[curY][curX].h_check
+                to_traverse = list(crosscheck.intersection(set(tiles)))
+                print(to_traverse)
+
+                for next in to_traverse:
+                    if next in node.children:
+                        temps = s + next
+                        if ish:
+                            temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
+                        else:
+                            temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
+                        remaining_tiles = tiles[:]
+                        remaining_tiles.remove(next)
+                        child_words = self.get_words_constrained(temp_start_seq,
+                            node.children[next], remaining_tiles, board, temps, s_list)
+                        if child_words != []:
+                            s_list.extend(child_words)
+                return s_list
+
+        else:
+            return s_list
 
 class Ai:
     def __init__(self):
@@ -473,6 +525,13 @@ class TestAi(unittest.TestCase):
         starts = board.get_starts(5)
         for start in starts:
             print(f"({start.x}, {start.y}): {start.template}")
+
+        tiles = ['a', 'b', 'c', 'd']
+
+        start = StartSequence(4, 6, [None, "a", None, None, None, None, None, None, None], False)
+        plays = trieRoot.get_words_constrained(start, trieRoot, tiles, board)
+        print(times_called)
+        print(len(plays))
 
     # test that board gets proper start positions
     def test_get_starts(self):
