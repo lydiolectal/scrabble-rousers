@@ -363,7 +363,6 @@ class TrieNode:
         curX, curY = start_seq.x, start_seq.y
         template = start_seq.template
         ish = start_seq.ish
-        print(f"({curX}, {curY})\n{template}")
 
         if template != []:
             curspot = template[0]
@@ -378,7 +377,7 @@ class TrieNode:
                         temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
 
                     child_words = self.get_words_constrained(temp_start_seq,
-                        node.children[curspot], tiles, board, temps, s_list)
+                        node.children[curspot], tiles, board, temps, [])
                     if child_words != []:
                         s_list.extend(child_words)
                 return s_list
@@ -390,7 +389,6 @@ class TrieNode:
 
                 crosscheck = board.crosschecks[curY][curX].v_check if ish else board.crosschecks[curY][curX].h_check
                 to_traverse = list(crosscheck.intersection(set(tiles)))
-                print(to_traverse)
 
                 for next in to_traverse:
                     if next in node.children:
@@ -402,12 +400,14 @@ class TrieNode:
                         remaining_tiles = tiles[:]
                         remaining_tiles.remove(next)
                         child_words = self.get_words_constrained(temp_start_seq,
-                            node.children[next], remaining_tiles, board, temps, s_list)
+                            node.children[next], remaining_tiles, board, temps, [])
                         if child_words != []:
                             s_list.extend(child_words)
                 return s_list
 
         else:
+            if node.is_word:
+                s_list.append(s)
             return s_list
 
 class Ai:
@@ -526,12 +526,13 @@ class TestAi(unittest.TestCase):
         for start in starts:
             print(f"({start.x}, {start.y}): {start.template}")
 
-        tiles = ['a', 'b', 'c', 'd']
+        tiles = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
         start = StartSequence(4, 6, [None, "a", None, None, None, None, None, None, None], False)
         plays = trieRoot.get_words_constrained(start, trieRoot, tiles, board)
-        print(times_called)
-        print(len(plays))
+        print("Times called: ", times_called)
+        print("Number of words: ", len(plays))
+        print(plays)
 
     # test that board gets proper start positions
     def test_get_starts(self):
