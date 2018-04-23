@@ -1,3 +1,5 @@
+import unittest
+
 from start_seq import StartSequence
 
 class TrieNode:
@@ -6,17 +8,20 @@ class TrieNode:
         self.children = {}
 
     def insert(self, s):
-        if s == "":
+        self.insert_helper(s, 0)
+
+    def insert_helper(self, s, i):
+        if i == len(s):
             self.is_word = True
         else:
-            curletter = s[0]
+            curletter = s[i]
             if curletter not in self.children:
                 self.children[curletter] = TrieNode()
-            self.children[curletter].insert(s[1:])
+            self.children[curletter].insert_helper(s, i + 1)
 
     def contains(self, s):
         if s == "":
-            return True
+            return self.is_word
         curletter = s[0]
         if curletter in self.children:
             return self.children[curletter].contains(s[1:])
@@ -178,3 +183,25 @@ class TrieNode:
             if node.is_word:
                 s_list.append(s)
             return s_list
+
+    scrabble_words = None
+
+    @staticmethod
+    def words():
+        if TrieNode.scrabble_words is None:
+            with open("scrabble_dictionary.txt") as f:
+                words = f.read().lower().splitlines()
+            TrieNode.scrabble_words = TrieNode()
+            for word in words:
+                TrieNode.scrabble_words.insert(word)
+        return TrieNode.scrabble_words
+
+class TestTrie(unittest.TestCase):
+
+    def test_contains(self):
+        # insert a word into trie
+        t = TrieNode()
+        t.insert("abba")
+        self.assertTrue(t.contains("abba"))
+        self.assertFalse(t.contains("hen"))
+        self.assertFalse(t.contains("ab"))
