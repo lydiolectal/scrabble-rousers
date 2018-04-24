@@ -20,71 +20,53 @@ class CrosscheckSquare:
             'x', 'y', 'z'}
 
 class Board:
-    def __init__(self, size = 15):
+    def __init__(self, size = 15, trie = None):
         if size < 1 or size % 2 == 0:
             raise RuntimeError(f"Invalid board dimension {size}")
         mid = size // 2
         self.size = size
+        self.trie = trie if trie else TrieNode.words()
         self.tiles = [[None] * size for _ in range(size)]
         self.crosschecks = [[CrosscheckSquare() for _ in range(size)] for _ in range(size)]
         self.neighbors = [[False] * size for _ in range(size)]
         self.neighbors[mid][mid] = True
         self.neighbors_set = {(mid, mid)}
 
+    def is_on_board(self, x, y):
+        return y >= 0 and y < self.size and x >= 0 and x < self.size
+
     def get_starts(self, num_tiles):
         starts = []
         for neighbor in self.neighbors_set:
-            starts.extend(self.get_start_h(neighbor, num_tiles))
-            starts.extend(self.get_start_v(neighbor, num_tiles))
+            starts.extend(self.get_start(neighbor, num_tiles, True))
+            starts.extend(self.get_start(neighbor, num_tiles, False))
         return starts
 
-    def get_start_h(self, neighbor, num_tiles):
+    def get_start(self, neighbor, num_tiles, ish):
         starts = []
-        start = self.get_start_sequence(neighbor[0], neighbor[1], True)
+        start = self.get_start_sequence(neighbor[0], neighbor[1], ish)
         starts.append(start)
         num_tiles -= 1
+        dX, dY = (-1, 0) if ish else (0, -1)
         curX, curY = neighbor[0], neighbor[1]
+        nextX, nextY = curX + dX, curY + dY
+
         # if next square is occupied, return the beginning of that word
-        if curX > 0 and self.tiles[curY][curX - 1] is not None:
-            while curX > 0 and self.tiles[curY][curX - 1] is not None:
-                curX -= 1
-            start = self.get_start_sequence(curX, curY, True)
+        if self.is_on_board(nextX, nextY) and self.tiles[nextY][nextX] is not None:
+            while self.is_on_board(nextX + dX, nextY + dY) and self.tiles[nextY + dY][nextX + dX] is not None:
+                nextX += dX
+                nextY += dY
+            start = self.get_start_sequence(nextX, nextY, ish)
             return [start]
         else:
             # not edge, not neighbor, still have tiles
-            curX -= 1
-            while curX >= 0 and not self.neighbors[curY][curX] and num_tiles > 0:
-                start = self.get_start_sequence(curX, curY, True)
+            while self.is_on_board(nextX, nextY) and not self.neighbors[nextY][nextX] and num_tiles > 0:
+                start = self.get_start_sequence(nextX, nextY, ish)
                 starts.append(start)
-                if self.tiles[curY][curX] is None:
+                if self.tiles[nextY][nextX] is None:
                     num_tiles -= 1
-                curX -= 1
-        return starts
-
-    def get_start_v(self, neighbor, num_tiles):
-        starts = []
-        start = self.get_start_sequence(neighbor[0], neighbor[1], False)
-        starts.append(start)
-        num_tiles -= 1
-        curX, curY = neighbor[0], neighbor[1]
-        # if is_vertical:
-        #     nextX, nextY = curX, curY - 1
-        # else:
-        #     nextX, nextY = curX - 1, curY
-        if curY > 0 and self.tiles[curY-1][curX] is not None:
-            while curY > 0 and self.tiles[curY-1][curX] is not None:
-                curY -= 1
-            start = self.get_start_sequence(curX, curY, False)
-            return [start]
-        else:
-            # not edge, not neighbor, still have tiles
-            curY -= 1
-            while curY >= 0 and not self.neighbors[curY][curX] and num_tiles > 0:
-                start = self.get_start_sequence(curX, curY, False)
-                starts.append(start)
-                if self.tiles[curY][curX] is None:
-                    num_tiles -= 1
-                curY -= 1
+                nextX += dX
+                nextY += dY
         return starts
 
     def get_start_sequence(self, startX, startY, ish):
@@ -214,6 +196,10 @@ class Board:
                 else:
                     print(f" {col} ", end = "")
             print()
+
+    def place(self, word_template, coord, ish):
+        self.place_word(word_template, coord, ish)
+        self.update_state(coord, len(word_template), ish, self.trie)
 
     def place_word(self, word_template, coord, ish):
         if len(word_template) == 0:
@@ -358,3 +344,17 @@ class TestAi(unittest.TestCase):
         c = Counter(s.ish for s in starts)
         self.assertEqual(c[True], 2)
         self.assertEqual(c[False], 2)
+
+    def test_get_start_occupied(self):
+        b3 = Board(5)
+        b3.place(["A", "A"], Coord(1, 2), True)
+        starts = b3.get_starts(2)
+
+        def is_horizontal(start):
+            return start.x == 1 and start.y == 2 and start.ish
+        def is_vertical(start):
+            return start.x == 1 and start.y == 2 and not start.ish
+        self.assertEqual(len(list(filter(is_horizontal, starts))), 1)
+        self.assertEqual(len(list(filter(is_vertical, starts))), 1)
+
+        self.assertEqual(len(starts), 18)
