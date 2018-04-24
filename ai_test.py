@@ -84,7 +84,6 @@ class Board:
     def get_v_check(self, coord):
         return self.crosschecks[coord.y][coord.x].v_check
 
-    # TODO: fix refactoring of this
     def update_state(self, coord, length, ish):
         curX, curY = coord.x, coord.y
         dX, dY = (1, 0) if ish else (0, 1)
@@ -101,8 +100,12 @@ class Board:
                 self.crosschecks[curY - dY][curX - dX].h_check = set(cross_set)
             else:
                 self.crosschecks[curY - dY][curX - dX].v_check = set(cross_set)
-        for curX in range(coord.x, coord.x + length):
-            self.update_helper(curX, curY, True)
+        if ish:
+            for curX in range(coord.x, coord.x + length):
+                self.update_helper(curX, curY, ish)
+        else:
+            for curY in range(coord.y, coord.y + length):
+                self.update_helper(curX, curY, ish)
         if ((ish and curX < self.size - 1) or (not ish and curY < self.size - 1)) \
         and self.tiles[curY + dY][curX + dX] is None:
             self.neighbors[curY + dY][curX + dX] = True
@@ -113,41 +116,6 @@ class Board:
                 self.crosschecks[curY + dY][curX + dX].h_check = set(cross_set)
             else:
                 self.crosschecks[curY + dY][curX + dX].v_check = set(cross_set)
-
-    # def update_state(self, coord, length, ish):
-    #     curX, curY = coord.x, coord.y
-    #     if ish:
-    #         if curX != 0 and self.tiles[curY][curX-1] is None:
-    #             # neighbors
-    #             self.neighbors[curY][curX-1] = True
-    #             self.neighbors_set.add((curX-1, curY))
-    #             # crosschecks
-    #             template = self.get_update_template(Coord(curX - 1, curY), True)
-    #             cross_set = self.trie.get_chars(template, self.trie)
-    #             self.crosschecks[curY][curX-1].h_check = set(cross_set)
-    #         for curX in range(coord.x, coord.x + length):
-    #             self.update_helper(curX, curY, True)
-    #         if curX < self.size - 1 and self.tiles[curY][curX+1] is None:
-    #             self.neighbors[curY][curX+1] = True
-    #             self.neighbors_set.add((curX+1, curY))
-    #             template = self.get_update_template(Coord(curX + 1, curY), True)
-    #             cross_set = self.trie.get_chars(template, self.trie)
-    #             self.crosschecks[curY][curX+1].h_check = set(cross_set)
-    #     else:
-    #         if curY != 0 and self.tiles[curY-1][curX] is None:
-    #             self.neighbors[curY-1][curX] = True
-    #             self.neighbors_set.add((curX, curY-1))
-    #             template = self.get_update_template(Coord(curX, curY - 1), False)
-    #             cross_set = self.trie.get_chars(template, self.trie)
-    #             self.crosschecks[curY-1][curX].v_check = set(cross_set)
-    #         for curY in range(coord.y, coord.y + length):
-    #             self.update_helper(curX, curY, False)
-    #         if curY < self.size - 1 and self.tiles[curY+1][curX] is None:
-    #             self.neighbors[curY+1][curX] = True
-    #             self.neighbors_set.add((curX, curY+1))
-    #             template = self.get_update_template(Coord(curX, curY + 1), False)
-    #             cross_set = self.trie.get_chars(template, self.trie)
-    #             self.crosschecks[curY+1][curX].v_check = set(cross_set)
 
     def update_helper(self, curX, curY, ish):
         dX, dY = (0, 1) if ish else (1, 0)
