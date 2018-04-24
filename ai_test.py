@@ -347,7 +347,7 @@ class TestAi(unittest.TestCase):
 
     def test_get_start_occupied(self):
         b3 = Board(5)
-        b3.place(["A", "A"], Coord(1, 2), True)
+        b3.place(["a", "a"], Coord(1, 2), True)
         starts = b3.get_starts(2)
 
         def is_horizontal(start):
@@ -358,3 +358,18 @@ class TestAi(unittest.TestCase):
         self.assertEqual(len(list(filter(is_vertical, starts))), 1)
 
         self.assertEqual(len(starts), 18)
+
+    def test_update(self):
+        b4 = Board(5)
+        b4.place(["b", "u", "g"], Coord(2, 1), False)
+        b4.print_b()
+
+        # neighbors
+        self.assertEqual(b4.neighbors_set, {(1, 1), (1, 2), (1, 3), (2, 0),
+                                            (2, 4), (3, 1), (3, 2), (3, 3)})
+        self.assertFalse(b4.neighbors[1][2])
+        self.assertTrue(b4.neighbors[2][3])
+
+        # crosschecks
+        self.assertEqual(b4.crosschecks[1][2].h_check, set())
+        self.assertEqual(b4.crosschecks[1][3].h_check, {"a", "e", "i", "o", "y"})
