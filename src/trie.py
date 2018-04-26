@@ -1,6 +1,4 @@
-import unittest
-
-from start_seq import StartSequence
+from src.start_seq import StartSequence
 
 class TrieNode:
     def __init__(self):
@@ -189,19 +187,9 @@ class TrieNode:
     @staticmethod
     def words():
         if TrieNode.scrabble_words is None:
-            with open("scrabble_dictionary.txt") as f:
+            with open("assets/scrabble_dictionary.txt") as f:
                 words = f.read().lower().splitlines()
             TrieNode.scrabble_words = TrieNode()
             for word in words:
                 TrieNode.scrabble_words.insert(word)
         return TrieNode.scrabble_words
-
-class TestTrie(unittest.TestCase):
-
-    def test_contains(self):
-        # insert a word into trie
-        t = TrieNode()
-        t.insert("abba")
-        self.assertTrue(t.contains("abba"))
-        self.assertFalse(t.contains("hen"))
-        self.assertFalse(t.contains("ab"))
