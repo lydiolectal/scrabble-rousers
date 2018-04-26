@@ -1,4 +1,4 @@
-from src.trie import TrieNode
+from src.trie import Trie
 from src.crosscheck_square import CrosscheckSquare
 from src.coord import Coord
 from src.start_seq import StartSequence
@@ -9,7 +9,7 @@ class Board:
             raise RuntimeError(f"Invalid board dimension {size}")
         mid = size // 2
         self.size = size
-        self.trie = trie if trie else TrieNode.words()
+        self.trie = trie if trie else Trie.words()
         self.tiles = [[None] * size for _ in range(size)]
         self.crosschecks = [[CrosscheckSquare() for _ in range(size)] for _ in range(size)]
         self.neighbors = [[False] * size for _ in range(size)]
@@ -80,7 +80,7 @@ class Board:
             self.neighbors_set.add((curX - dX, curY - dY))
             # crosschecks
             template = self.get_update_template(Coord(curX - dX, curY - dY), ish)
-            cross_set = self.trie.get_chars(template, self.trie)
+            cross_set = self.trie.get_chars(template)
             if ish:
                 self.crosschecks[curY - dY][curX - dX].h_check = set(cross_set)
             else:
@@ -96,7 +96,7 @@ class Board:
             self.neighbors[curY + dY][curX + dX] = True
             self.neighbors_set.add((curX + dX, curY + dY))
             template = self.get_update_template(Coord(curX + dX, curY + dY), ish)
-            cross_set = self.trie.get_chars(template, self.trie)
+            cross_set = self.trie.get_chars(template)
             if ish:
                 self.crosschecks[curY + dY][curX + dX].h_check = set(cross_set)
             else:
@@ -115,12 +115,12 @@ class Board:
             if ish:
                 # refactor into own function
                 template = self.get_update_template(Coord(curX - dX, curY - dY), True)
-                cross_set = self.trie.get_chars(template, self.trie)
+                cross_set = self.trie.get_chars(template)
                 self.crosschecks[curY - dY][curY - dY].v_check = set(cross_set)
             else:
                 # refactor into own function
                 template = self.get_update_template(Coord(curX - dX, curY - dY), False)
-                cross_set = self.trie.get_chars(template, self.trie)
+                cross_set = self.trie.get_chars(template)
                 self.crosschecks[curY - dY][curY - dY].h_check = set(cross_set)
         if (ish and curY < self.size - 1) or (not ish and curX < self.size - 1):
             self.neighbors[curY + dY][curX + dX] = True
@@ -128,12 +128,12 @@ class Board:
             if ish:
                 # refactor into own function
                 template = self.get_update_template(Coord(curX + dX, curY + dY), True)
-                cross_set = self.trie.get_chars(template, self.trie)
+                cross_set = self.trie.get_chars(template)
                 self.crosschecks[curY + dY][curX + dX].v_check = set(cross_set)
             else:
                 # refactor into own function
                 template = self.get_update_template(Coord(curX + dX, curY + dY), False)
-                cross_set = self.trie.get_chars(template, self.trie)
+                cross_set = self.trie.get_chars(template)
                 self.crosschecks[curY + dY][curX + dX].h_check = set(cross_set)
 
     def get_update_template(self, coord, ish):

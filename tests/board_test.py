@@ -5,9 +5,9 @@ from src.board import Board
 from src.coord import Coord
 from src.crosscheck_square import CrosscheckSquare
 from src.start_seq import StartSequence
-from src.trie import TrieNode
+from src.trie import Trie
 
-class TestAi(unittest.TestCase):
+class TestBoard(unittest.TestCase):
 
     def test_place_word(self):
         word_template = [c for c in "cabr"] + [None] + [c for c in "iole"]
@@ -17,7 +17,7 @@ class TestAi(unittest.TestCase):
         self.assertEqual(board.tiles[7][7], None)
 
     def test_getwords(self):
-        trieRoot = TrieNode.words()
+        trieRoot = Trie.words()
 
         template = ["a", "b", "a", None, None, None]
         expected = []
@@ -30,17 +30,17 @@ class TestAi(unittest.TestCase):
         #'abatis', 'abator']
 
         player = Ai()
-        actual = trieRoot.get_words_tiles(template, trieRoot, player.tiles)
+        actual = trieRoot.get_words_tiles(template, player.tiles)
 
         self.assertEqual(sorted(actual), sorted(expected))
         self.assertEqual(len(expected), len(actual))
 
-        actual = trieRoot.get_words(template, trieRoot)
+        actual = trieRoot.get_words(template)
         self.assertEqual(sorted(actual), sorted(expected))
         self.assertEqual(len(expected), len(actual))
 
     def test_crosscheck(self):
-        trieRoot = TrieNode.words()
+        trieRoot = Trie.words()
 
         board = Board()
         testCoord = Coord(4, 8)
@@ -65,16 +65,16 @@ class TestAi(unittest.TestCase):
         self.assertEqual(board.get_h_check(Coord(8, 4)), expected)
 
     def test_getchar(self):
-        trieRoot = TrieNode.words()
+        trieRoot = Trie.words()
 
         template = ["c", "a", "b", None, "i", "o", "l", "e"]
-        self.assertEqual(trieRoot.get_chars(template, trieRoot), ["r"])
+        self.assertEqual(trieRoot.get_chars(template), ["r"])
         template = ["c", "a", None]
         # print(trieRoot.get_chars(template, trieRoot))
 
     def test_update_neighbors(self):
 
-        trieRoot = TrieNode.words()
+        trieRoot = Trie.words()
 
         board = Board()
         testCoord = Coord(4, 8)
@@ -99,7 +99,7 @@ class TestAi(unittest.TestCase):
         tiles = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
         start = StartSequence(4, 6, [None, "a", None, None, None, None, None, None, None], False)
-        plays = trieRoot.get_words_constrained(start, trieRoot, tiles, board)
+        plays = trieRoot.get_words_constrained(start, tiles, board)
         # print("Times called: ", times_called)
         # print("Number of words: ", len(plays))
         # print(plays)

@@ -1,12 +1,11 @@
 import unittest
-
-from src.trie import TrieNode
+from src.trie import Trie
 
 class TestTrie(unittest.TestCase):
 
     def test_contains(self):
         # insert a word into trie
-        t = TrieNode()
+        t = Trie()
         t.insert("abba")
         self.assertTrue(t.contains("abba"))
         self.assertFalse(t.contains("hen"))

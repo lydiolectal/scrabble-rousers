@@ -1,33 +1,48 @@
 from src.start_seq import StartSequence
+from src.trie_node import TrieNode
 
-class TrieNode:
+class Trie:
     def __init__(self):
-        self.is_word = False
-        self.children = {}
+        self.root = TrieNode()
 
     def insert(self, s):
-        self.insert_helper(s, 0)
+        self.insert_helper(self.root, s, 0)
 
-    def insert_helper(self, s, i):
+    def insert_helper(self, node, s, i):
         if i == len(s):
-            self.is_word = True
+            node.is_word = True
         else:
             curletter = s[i]
-            if curletter not in self.children:
-                self.children[curletter] = TrieNode()
-            self.children[curletter].insert_helper(s, i + 1)
+            if curletter not in node.children:
+                node.children[curletter] = TrieNode()
+            self.insert_helper(node.children[curletter], s, i + 1)
 
     def contains(self, s):
+        return self.contains_helper(self.root, s)
+
+    def contains_helper(self, node, s):
         if s == "":
-            return self.is_word
+            return node.is_word
         curletter = s[0]
-        if curletter in self.children:
-            return self.children[curletter].contains(s[1:])
+        if curletter in node.children:
+            return self.contains_helper(node.children[curletter], s[1:])
         else:
             return False
 
+    def get_words(self, template):
+        return self.get_words_helper(template, self.root)
+
+    def get_chars(self, template):
+        return self.get_chars_helper(template, self.root)
+
+    def get_words_tiles(self, template, tiles):
+        return self.get_words_tiles_helper(template, self.root, tiles)
+
+    def get_words_constrained(self, start_seq, tiles, board):
+        return self.get_words_constrained_helper(start_seq, self.root, tiles, board)
+
     # get words without tile constraints
-    def get_words(self, template, node, s = ""):
+    def get_words_helper(self, template, node, s = ""):
         """
         Gets words that can be played in a given span on the board.
         Parameters:
@@ -47,7 +62,7 @@ class TrieNode:
             if curspot != None:
                 if curspot in node.children:
                     temps = s + curspot
-                    child_words = self.get_words(template[1:],
+                    child_words = self.get_words_helper(template[1:],
                         node.children[curspot], temps)
                     return child_words
                 else:
@@ -57,7 +72,7 @@ class TrieNode:
                 words = []
                 for next in node.children:
                     temps = s + next
-                    child_words = self.get_words(template[1:],
+                    child_words = self.get_words_helper(template[1:],
                         node.children[next], temps)
                     if child_words != []:
                         words.extend(child_words)
@@ -69,14 +84,14 @@ class TrieNode:
                 return []
 
     # get possible characters for first blank
-    def get_chars(self, template, node, c = ""):
+    def get_chars_helper(self, template, node, c = ""):
         # while we still have spaces left to fill
         if template != []:
             curspot = template[0]
 
             if curspot != None:
                 if curspot in node.children:
-                    child_words = self.get_chars(template[1:],
+                    child_words = self.get_chars_helper(template[1:],
                         node.children[curspot], c)
                     return child_words
                 else:
@@ -85,7 +100,7 @@ class TrieNode:
             else:
                 words = []
                 for next in node.children:
-                    child_words = self.get_chars(template[1:],
+                    child_words = self.get_chars_helper(template[1:],
                         node.children[next], next)
                     if child_words != []:
                         words.extend(child_words)
@@ -97,7 +112,7 @@ class TrieNode:
                 return []
 
     # get words given tile rack
-    def get_words_tiles(self, template, node, tiles, s = ""):
+    def get_words_tiles_helper(self, template, node, tiles, s = ""):
         # while we still have spaces left to fill
         if template != []:
             curspot = template[0]
@@ -105,7 +120,7 @@ class TrieNode:
             if curspot != None:
                 if curspot in node.children:
                     temps = s + curspot
-                    child_words = self.get_words_tiles(template[1:],
+                    child_words = self.get_words_tiles_helper(template[1:],
                         node.children[curspot], tiles, temps)
                     return child_words
                 else:
@@ -119,7 +134,7 @@ class TrieNode:
                         temps = s + next
                         remaining_tiles = tiles[:]
                         remaining_tiles.remove(next)
-                        child_words = self.get_words_tiles(template[1:],
+                        child_words = self.get_words_tiles_helper(template[1:],
                             node.children[next], remaining_tiles, temps)
                         if child_words != []:
                             words.extend(child_words)
@@ -129,7 +144,7 @@ class TrieNode:
                 return [s]
             else: return []
 
-    def get_words_constrained(self, start_seq, node, tiles, board, s = "", s_list = None):
+    def get_words_constrained_helper(self, start_seq, node, tiles, board, s = "", s_list = None):
         if s_list is None:
             s_list = []
         curX, curY = start_seq.x, start_seq.y
@@ -148,7 +163,7 @@ class TrieNode:
                     else:
                         temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
 
-                    child_words = self.get_words_constrained(temp_start_seq,
+                    child_words = self.get_words_constrained_helper(temp_start_seq,
                         node.children[curspot], tiles, board, temps, [])
                     if child_words != []:
                         s_list.extend(child_words)
@@ -171,7 +186,7 @@ class TrieNode:
                             temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
                         remaining_tiles = tiles[:]
                         remaining_tiles.remove(next)
-                        child_words = self.get_words_constrained(temp_start_seq,
+                        child_words = self.get_words_constrained_helper(temp_start_seq,
                             node.children[next], remaining_tiles, board, temps, [])
                         if child_words != []:
                             s_list.extend(child_words)
@@ -186,10 +201,10 @@ class TrieNode:
 
     @staticmethod
     def words():
-        if TrieNode.scrabble_words is None:
+        if Trie.scrabble_words is None:
             with open("assets/scrabble_dictionary.txt") as f:
                 words = f.read().lower().splitlines()
-            TrieNode.scrabble_words = TrieNode()
+            Trie.scrabble_words = Trie()
             for word in words:
-                TrieNode.scrabble_words.insert(word)
-        return TrieNode.scrabble_words
+                Trie.scrabble_words.insert(word)
+        return Trie.scrabble_words
