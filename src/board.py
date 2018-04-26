@@ -29,6 +29,7 @@ class Board:
             starts.extend(self.get_start(neighbor, num_tiles, False))
         return starts
 
+    # TODO: refactor this 
     def get_start(self, neighbor, num_tiles, ish):
         starts = []
         curX, curY = neighbor
@@ -73,84 +74,73 @@ class Board:
     def get_v_check(self, coord):
         return self.crosschecks[coord.y][coord.x].v_check
 
-    def update_state(self, coord, length, ish):
+    def is_edge(self, coord, ish, is_increment):
+        if is_increment:
+            return (ish and coord.x >= self.size - 1) or (not ish and coord.y >= self.size - 1)
+        else:
+            return (ish and coord.x <= 0) or (not ish and coord.y <= 0)
+
+
+    def in_word(self, coord, word_end, ish):
+        if ish:
+            return coord.x < word_end
+        else:
+            return coord.y < word_end
+
+    def update_state(self, coord, word_length, ish):
+        x, y = coord
+        self.update_helper(Coord(x, y), ish, False)
+
         curX, curY = coord
         dX, dY = (1, 0) if ish else (0, 1)
+        word_end = curX + word_length if ish else curY + word_length
 
-        # refactor into boolean function
-        if ((ish and curX > 0) or (not ish and curY > 0)) \
-        and not self.tiles[curY - dY][curX - dX]:
-            # neighbors
-            self.neighbors[curY - dY][curX - dX] = True
-            self.neighbors_set.add(Coord(curX - dX, curY - dY))
-            # crosschecks
-            template = self.get_update_template(Coord(curX - dX, curY - dY), ish)
-            cross_set = self.trie.get_chars(template)
-            if ish:
-                self.crosschecks[curY - dY][curX - dX].h_check = set(cross_set)
-            else:
-                self.crosschecks[curY - dY][curX - dX].v_check = set(cross_set)
-        if ish:
-            for curX in range(coord.x, coord.x + length):
-                self.update_helper(Coord(curX, curY), ish)
-        else:
-            for curY in range(coord.y, coord.y + length):
-                self.update_helper(Coord(curX, curY), ish)
-        if ((ish and curX < self.size - 1) or (not ish and curY < self.size - 1)) \
-        and not self.tiles[curY + dY][curX + dX]:
-            self.neighbors[curY + dY][curX + dX] = True
-            self.neighbors_set.add(Coord(curX + dX, curY + dY))
-            template = self.get_update_template(Coord(curX + dX, curY + dY), ish)
-            cross_set = self.trie.get_chars(template)
-            if ish:
-                self.crosschecks[curY + dY][curX + dX].h_check = set(cross_set)
-            else:
-                self.crosschecks[curY + dY][curX + dX].v_check = set(cross_set)
-                
-    def update_helper(self, coord, ish):
-        curX, curY = coord
-        dX, dY = (0, 1) if ish else (1, 0)
-        self.crosschecks[curY][curX].h_check = set()
-        self.crosschecks[curY][curX].v_check = set()
-        self.neighbors[curY][curX] = False
-        if (curX, curY) in self.neighbors_set:
-            self.neighbors_set.remove(Coord(curX, curY))
-        if (ish and curY > 0) or (not ish and curX > 0):
-            self.neighbors[curY - dY][curX - dX] = True
-            self.neighbors_set.add(Coord(curX - dX, curY - dY))
-            template = self.get_update_template(Coord(curX - dX, curY - dY), ish)
-            cross_set = self.trie.get_chars(template)
-            if ish:
-                self.crosschecks[curY - dY][curY - dY].v_check = set(cross_set)
-            else:
-                self.crosschecks[curY - dY][curY - dY].h_check = set(cross_set)
-        if (ish and curY < self.size - 1) or (not ish and curX < self.size - 1):
-            self.neighbors[curY + dY][curX + dX] = True
-            self.neighbors_set.add(Coord(curX + dX, curY + dY))
-            # refactor into own function
-            template = self.get_update_template(Coord(curX + dX, curY + dY), ish)
-            cross_set = self.trie.get_chars(template)
-            if ish:
-                self.crosschecks[curY + dY][curX + dX].v_check = set(cross_set)
-            else:
-                self.crosschecks[curY + dY][curX + dX].h_check = set(cross_set)
+        while self.in_word(Coord(curX, curY), word_end, ish):
+            self.update_helper(Coord(curX, curY), not ish, False)
+            self.update_helper(Coord(curX, curY), not ish, True)
 
-    def get_update_template(self, coord, ish):
-        dX, dY = (0, 1) if ish else (1, 0)
-        curX, curY = coord.x - dX, coord.y - dY
-
-        template = [None]
-        # go left
-        while self.is_on_board(Coord(curX, curY)) and self.tiles[curY][curX]:
-            template.insert(0, self.tiles[curY][curX])
-            curX -= dX
-            curY -= dY
-        # go right
-        curX, curY = coord.x + dX, coord.y + dY
-        while self.is_on_board(Coord(curX, curY)) and self.tiles[curY][curX]:
-            template.append(self.tiles[curY][curX])
+            self.neighbors[curY][curX] = False
+            if (curX, curY) in self.neighbors_set:
+                self.neighbors_set.remove(Coord(curX, curY))
+            self.crosschecks[curY][curX].empty()
             curX += dX
             curY += dY
+
+        x = x + dX * (word_length - 1)
+        y = y + dY * (word_length - 1)
+        self.update_helper(Coord(x, y), ish, True)
+
+    def update_helper(self, coord, ish, is_increment):
+        x, y = coord
+        if is_increment:
+            dX, dY = (1, 0) if ish else (0, 1)
+        else:
+            dX, dY = (-1, 0) if ish else (0, -1)
+
+        # check that it's not an edge and the square is unoccupied
+        if not self.is_edge(coord, ish, is_increment) and not self.tiles[y + dY][x + dX]:
+            self.neighbors[y + dY][x + dX] = True
+            self.neighbors_set.add(Coord(x + dX, y + dY))
+            template = self.get_update_template(Coord(x + dX, y + dY), ish)
+            print(template)
+            cross_set = self.trie.get_chars(template)
+            self.crosschecks[y + dY][x + dX].set_crosscheck(set(cross_set), ish)
+
+    def get_update_template(self, coord, ish):
+        dX, dY = (1, 0) if ish else (0, 1)
+        x, y = coord.x - dX, coord.y - dY
+        template = [None]
+        # go left
+        while self.is_on_board(Coord(x, y)) and self.tiles[y][x]:
+            template.insert(0, self.tiles[y][x])
+            x -= dX
+            y -= dY
+        # go right
+        x, y = coord.x + dX, coord.y + dY
+        while self.is_on_board(Coord(x, y)) and self.tiles[y][x]:
+            template.append(self.tiles[y][x])
+            x += dX
+            y += dY
         return template
 
     def place(self, word_template, coord, ish):
