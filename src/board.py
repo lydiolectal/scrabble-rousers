@@ -29,7 +29,6 @@ class Board:
             starts.extend(self.get_start(neighbor, num_tiles, False))
         return starts
 
-    # TODO: refactor this 
     def get_start(self, neighbor, num_tiles, ish):
         starts = []
         curX, curY = neighbor
@@ -40,15 +39,16 @@ class Board:
         num_tiles -= 1
         nextX, nextY = curX + dX, curY + dY
 
-        # if next square is occupied, return the beginning of that word
+        # if next square is occupied, traverse until beginning of that word
         if self.is_on_board(Coord(nextX, nextY)) and self.tiles[nextY][nextX]:
             while self.is_on_board(Coord(nextX + dX, nextY + dY)) and self.tiles[nextY + dY][nextX + dX] is not None:
                 nextX += dX
                 nextY += dY
             start = self.get_start_sequence(Coord(nextX, nextY), ish)
             return [start]
+        # if next square is empty, traverse until you run out of tiles, hit edge
+        # or hit another neighbor
         else:
-            # not edge, not neighbor, still have tiles
             while self.is_on_board(Coord(nextX, nextY)) and not self.neighbors[nextY][nextX] and num_tiles > 0:
                 start = self.get_start_sequence(Coord(nextX, nextY), ish)
                 starts.append(start)
@@ -79,7 +79,6 @@ class Board:
             return (ish and coord.x >= self.size - 1) or (not ish and coord.y >= self.size - 1)
         else:
             return (ish and coord.x <= 0) or (not ish and coord.y <= 0)
-
 
     def in_word(self, coord, word_end, ish):
         if ish:
@@ -122,7 +121,6 @@ class Board:
             self.neighbors[y + dY][x + dX] = True
             self.neighbors_set.add(Coord(x + dX, y + dY))
             template = self.get_update_template(Coord(x + dX, y + dY), ish)
-            print(template)
             cross_set = self.trie.get_chars(template)
             self.crosschecks[y + dY][x + dX].set_crosscheck(set(cross_set), ish)
 

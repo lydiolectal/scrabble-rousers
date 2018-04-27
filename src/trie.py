@@ -39,7 +39,9 @@ class Trie:
         return self.get_words_tiles_helper(template, self.root, tiles)
 
     def get_words_constrained(self, start_seq, tiles, board):
-        return self.get_words_constrained_helper(start_seq, self.root, tiles, board)
+        s_list = []
+        self.get_words_constrained_helper(start_seq, self.root, tiles, board, s_list)
+        return s_list
 
     # get words without tile constraints
     def get_words_helper(self, template, node, s = ""):
@@ -144,9 +146,7 @@ class Trie:
                 return [s]
             else: return []
 
-    def get_words_constrained_helper(self, start_seq, node, tiles, board, s = "", s_list = None):
-        if s_list is None:
-            s_list = []
+    def get_words_constrained_helper(self, start_seq, node, tiles, board, s_list, s = ""):
         curX, curY = start_seq.x, start_seq.y
         template = start_seq.template
         ish = start_seq.ish
@@ -161,13 +161,10 @@ class Trie:
                     if ish:
                         temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
                     else:
-                        temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
+                        temp_start_seq = StartSequence(curX, curY + 1, template[1:], ish)
 
                     child_words = self.get_words_constrained_helper(temp_start_seq,
-                        node.children[curspot], tiles, board, temps, [])
-                    if child_words != []:
-                        s_list.extend(child_words)
-                return s_list
+                        node.children[curspot], tiles, board, s_list, temps)
 
             else:
                 # check if this is a valid terminal node
@@ -186,16 +183,11 @@ class Trie:
                             temp_start_seq = StartSequence(curX, curY + 1 , template[1:], ish)
                         remaining_tiles = tiles[:]
                         remaining_tiles.remove(next)
-                        child_words = self.get_words_constrained_helper(temp_start_seq,
-                            node.children[next], remaining_tiles, board, temps, [])
-                        if child_words != []:
-                            s_list.extend(child_words)
-                return s_list
-
+                        self.get_words_constrained_helper(temp_start_seq,
+                            node.children[next], remaining_tiles, board, s_list, temps)
         else:
             if node.is_word:
                 s_list.append(s)
-            return s_list
 
     scrabble_words = None
 
