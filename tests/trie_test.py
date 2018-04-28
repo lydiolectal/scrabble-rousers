@@ -68,6 +68,8 @@ class TestTrie(unittest.TestCase):
         trieRoot = Trie.words()
         b4 = Board(3)
         b4.place(["b", "u", "g"], Coord(1, 0), False)
+        print()
+        b4.print_b()
 
         starts = b4.get_starts(6)
         words = []
@@ -75,6 +77,7 @@ class TestTrie(unittest.TestCase):
 
         for start in starts:
             words.extend(trieRoot.get_words_constrained(start, tiles, b4))
+        print(words)
 
         self.assertEqual(set(words), {'obi', 'obe', 'abo', 'aby', 'bi', 'bo',
             'by', 'be', 'ba', 'go', 'ego', 'ag', 'ago', 'age'})
