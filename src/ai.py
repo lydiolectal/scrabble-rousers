@@ -13,7 +13,9 @@ class Ai:
 
         possible_plays = []
         for start in starts:
-            possible_plays.extend(trie.get_plays_constrained(start, self.tiles, board))
+            dist = start.points
+            plays = trie.get_plays_constrained(start, self.tiles, board, dist)
+            possible_plays.extend(plays)
 
         if not possible_plays:
             return False

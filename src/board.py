@@ -35,9 +35,11 @@ class Board:
         starts = []
         curX, curY = neighbor
         dX, dY = (-1, 0) if ish else (0, -1)
-        start = self.get_start_sequence(Coord(curX, curY), ish)
-        starts.append(start)
         num_tiles -= 1
+        tiles_used = 1
+
+        start = self.get_start_sequence(Coord(curX, curY), ish, tiles_used)
+        starts.append(start)
         nextX, nextY = curX + dX, curY + dY
 
         # if next square is occupied, traverse until beginning of that word
@@ -45,28 +47,29 @@ class Board:
             while self.is_on_board(Coord(nextX + dX, nextY + dY)) and self.tiles[nextY + dY][nextX + dX] is not None:
                 nextX += dX
                 nextY += dY
-            start = self.get_start_sequence(Coord(nextX, nextY), ish)
+            start = self.get_start_sequence(Coord(nextX, nextY), ish, tiles_used)
             return [start]
         # if next square is empty, traverse until you run out of tiles, hit edge
         # or hit another neighbor
         else:
             while self.is_on_board(Coord(nextX, nextY)) and not self.neighbors[nextY][nextX] and num_tiles > 0:
-                start = self.get_start_sequence(Coord(nextX, nextY), ish)
-                starts.append(start)
                 if not self.tiles[nextY][nextX]:
                     num_tiles -= 1
+                    tiles_used += 1
+                start = self.get_start_sequence(Coord(nextX, nextY), ish, tiles_used)
+                starts.append(start)
                 nextX += dX
                 nextY += dY
         return starts
 
-    def get_start_sequence(self, coord, ish):
+    def get_start_sequence(self, coord, ish, dist):
         startX, startY = coord
         template = []
         if ish:
             template = [self.tiles[startY][x] for x in range(startX, self.size)]
         else:
             template = [self.tiles[y][startX] for y in range(startY, self.size)]
-        return StartSequence(startX, startY, template, ish)
+        return StartSequence(startX, startY, template, ish, dist)
 
     # cross check board methods
     def get_h_check(self, coord):

@@ -30,14 +30,14 @@ class Trie:
             return False
 
     # return a StartSequence that includes the word template
-    def get_plays_constrained(self, start_seq, tiles, board):
+    def get_plays_constrained(self, start_seq, tiles, board, dist):
         templates = self.get_words_constrained(start_seq, tiles, board)
 
         plays = []
         x, y = start_seq.x, start_seq.y
         ish = start_seq.ish
         for template in templates:
-            if not all(c is None for c in template):
+            if not all(c is None for c in template) and len(template) >= dist:
                 plays.append(StartSequence(x, y, template, ish))
         return plays
 
