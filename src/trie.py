@@ -102,7 +102,7 @@ class Trie:
             if node.is_word:
                 return [c]
 
-    def get_words_constrained_helper(self, start_seq, node, tiles, board, s_list, s = ()):
+    def get_words_constrained_helper(self, start_seq, node, tiles, board, s_list, s = []):
         curX, curY = start_seq.x, start_seq.y
         template = start_seq.template
         ish = start_seq.ish
@@ -113,7 +113,7 @@ class Trie:
             # otherwise, descend trie
             if curspot:
                 if curspot in node.children:
-                    temps = s + (None, )
+                    temps = s + [None]
                     if ish:
                         temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
                     else:
@@ -130,7 +130,7 @@ class Trie:
 
                 for next in to_traverse:
                     if next in node.children:
-                        temps = s + (next, )
+                        temps = s + [next]
                         if ish:
                             temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
                         else:

@@ -40,6 +40,7 @@ class TestTrie(unittest.TestCase):
         start = StartSequence(4, 6, [None, "a", None, None, None, None,
             None, None, None], False)
         plays = trieRoot.get_words_constrained(start, tiles, board)
+        plays = [tuple(play) for play in plays]
 
         self.assertEqual(set(plays), {('b', None), ('b', None, 'd'),
         ('b', None, 'd', 'e'), ('b', None, 'd', 'g', 'e'), ('b', None, 'a'),
@@ -66,6 +67,7 @@ class TestTrie(unittest.TestCase):
 
         for start in starts:
             words.extend(trieRoot.get_words_constrained(start, tiles, b4))
+        words = [tuple(word) for word in words]
 
         self.assertEqual(set(words), {('a', None, 'o'), ('a', None, 'y'),
         ('o', None, 'e'), ('o', None, 'i'), (None, 'e'), (None, 'a'),

@@ -31,6 +31,7 @@ class Game:
                 # then break if unsuccessful
                 break
             i = 1 if i == 0 else 0
+            # pause!
 
     def end(self):
         pass
