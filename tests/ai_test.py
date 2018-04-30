@@ -16,9 +16,11 @@ class TestAi(unittest.TestCase):
 
         trie = Trie.words()
 
+        b.print_b()
+        print()
         successful_play = ai.make_play(trie, b)
         self.assertTrue(successful_play)
-        # b.print_b()
+        b.print_b()
 
     # tests that make_play doesn't work when the board is impossible
     def test_make_play_fail(self):
