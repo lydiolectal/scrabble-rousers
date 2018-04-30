@@ -1,15 +1,19 @@
 import random, string
 
 class Ai:
-    def __init__(self, board, trie):
-        # self.tiles = [random.choice(string.ascii_lowercase) for _ in range(7)]
-        self.tiles = ["c", "a", "s", "u", "k", "m", "p", "e", "d", "r", "s",
-        "i", "t", "o"]
-        self.board = board
-        self.trie = trie
+    def __init__(self, tiles):
+        self.tiles = []
+        self.score = 0
 
-    def make_move(self):
+    def make_play(self):
+        # get starts
+        # get words from starts
+        # if no words, quit!
+        # place optimal word (or random at first)
+        # take out and replenish tiles
+        # return True after successful play or exchange
+        # return False to skip turn.
         pass
 
-    def exchange(self):
+    def replenish_tiles(self):
         pass

@@ -33,120 +33,76 @@ class Trie:
         return self.get_words_helper(template, self.root)
 
     def get_chars(self, template):
+        # check that there is only one None in the template; error if > 1
+        from functools import reduce
+        num_blanks = reduce((lambda n, c: n + int(not c)), template, 0)
+        if num_blanks != 1:
+            raise RuntimeError(f"Template should have 1 blank. {num_blanks} blanks.")
         return self.get_chars_helper(template, self.root)
-
-    def get_words_tiles(self, template, tiles):
-        return self.get_words_tiles_helper(template, self.root, tiles)
 
     def get_words_constrained(self, start_seq, tiles, board):
         s_list = []
         self.get_words_constrained_helper(start_seq, self.root, tiles, board, s_list)
         return s_list
 
-    # get words without tile constraints
+    """
+    Gets words that can be played in a given span on the board.
+    Parameters:
+    -----------
+    template: type
+    node: type
+
+    Returns:
+    --------
+    list_of_strings: type
+
+    """
     def get_words_helper(self, template, node, s = ""):
-        """
-        Gets words that can be played in a given span on the board.
-        Parameters:
-        -----------
-        template: type
-        node: type
-
-        Returns:
-        --------
-        list_of_strings: type
-
-        """
         # while we still have spaces left to fill
         if template != []:
             curspot = template[0]
-
-            if curspot != None:
+            if curspot:
                 if curspot in node.children:
                     temps = s + curspot
                     child_words = self.get_words_helper(template[1:],
                         node.children[curspot], temps)
                     return child_words
-                else:
-                    return []
-
             else:
                 words = []
                 for next in node.children:
                     temps = s + next
                     child_words = self.get_words_helper(template[1:],
                         node.children[next], temps)
-                    if child_words != []:
+                    if child_words:
                         words.extend(child_words)
                 return words
         else:
             if node.is_word:
                 return [s]
-            else:
-                return []
 
     # get possible characters for first blank
     def get_chars_helper(self, template, node, c = ""):
         # while we still have spaces left to fill
         if template != []:
             curspot = template[0]
-
-            if curspot != None:
+            if curspot:
                 if curspot in node.children:
                     child_words = self.get_chars_helper(template[1:],
                         node.children[curspot], c)
                     return child_words
-                else:
-                    return []
-
             else:
-                words = []
+                chars = []
                 for next in node.children:
                     child_words = self.get_chars_helper(template[1:],
                         node.children[next], next)
-                    if child_words != []:
-                        words.extend(child_words)
-                return words
+                    if child_words:
+                        chars.extend(child_words)
+                return chars
         else:
             if node.is_word:
                 return [c]
-            else:
-                return []
 
-    # get words given tile rack
-    def get_words_tiles_helper(self, template, node, tiles, s = ""):
-        # while we still have spaces left to fill
-        if template != []:
-            curspot = template[0]
-
-            if curspot != None:
-                if curspot in node.children:
-                    temps = s + curspot
-                    child_words = self.get_words_tiles_helper(template[1:],
-                        node.children[curspot], tiles, temps)
-                    return child_words
-                else:
-                    return []
-
-            else:
-                to_traverse = list(set(tiles))
-                words = []
-                for next in to_traverse:
-                    if next in node.children:
-                        temps = s + next
-                        remaining_tiles = tiles[:]
-                        remaining_tiles.remove(next)
-                        child_words = self.get_words_tiles_helper(template[1:],
-                            node.children[next], remaining_tiles, temps)
-                        if child_words != []:
-                            words.extend(child_words)
-                return words
-        else:
-            if node.is_word:
-                return [s]
-            else: return []
-
-    def get_words_constrained_helper(self, start_seq, node, tiles, board, s_list, s = ""):
+    def get_words_constrained_helper(self, start_seq, node, tiles, board, s_list, s = ()):
         curX, curY = start_seq.x, start_seq.y
         template = start_seq.template
         ish = start_seq.ish
@@ -155,17 +111,15 @@ class Trie:
             curspot = template[0]
 
             # otherwise, descend trie
-            if curspot is not None:
+            if curspot:
                 if curspot in node.children:
-                    temps = s + curspot
+                    temps = s + (None, )
                     if ish:
                         temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
                     else:
                         temp_start_seq = StartSequence(curX, curY + 1, template[1:], ish)
-
                     child_words = self.get_words_constrained_helper(temp_start_seq,
                         node.children[curspot], tiles, board, s_list, temps)
-
             else:
                 # check if this is a valid terminal node
                 if node.is_word:
@@ -176,7 +130,7 @@ class Trie:
 
                 for next in to_traverse:
                     if next in node.children:
-                        temps = s + next
+                        temps = s + (next, )
                         if ish:
                             temp_start_seq = StartSequence(curX + 1, curY, template[1:], ish)
                         else:

@@ -1,3 +1,5 @@
+import random
+
 # keeps track of tile bag, and allows players to draw and exchange tiles
 class Bag:
     def __init__(self):

@@ -1,3 +1,5 @@
+from src.coord import Coord
+
 # stores a start position and the template associated with it.
 class StartSequence:
     def __init__(self, x, y, template, ish):

@@ -33,7 +33,6 @@ class Board:
         starts = []
         curX, curY = neighbor
         dX, dY = (-1, 0) if ish else (0, -1)
-
         start = self.get_start_sequence(Coord(curX, curY), ish)
         starts.append(start)
         num_tiles -= 1
