@@ -10,6 +10,7 @@ class Ai:
     def make_play(self, trie, board):
         # get starts
         starts = board.get_starts(len(self.tiles))
+
         possible_plays = []
         for start in starts:
             possible_plays.extend(trie.get_plays_constrained(start, self.tiles, board))
