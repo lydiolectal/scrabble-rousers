@@ -3,6 +3,8 @@ from src.crosscheck_square import CrosscheckSquare
 from src.coord import Coord
 from src.start_seq import StartSequence
 
+import sys
+
 class Board:
     def __init__(self, size = 15, trie = None):
         if size < 1 or size % 2 == 0:

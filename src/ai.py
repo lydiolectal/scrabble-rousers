@@ -16,10 +16,17 @@ class Ai:
 
         if not possible_plays:
             return False
+
         # place optimal word (or random at first)
         optimal_play = max(possible_plays)
         board.place(optimal_play.template,
             Coord(optimal_play.x, optimal_play.y), optimal_play.ish)
-        # TODO: take out and replenish tiles -- needs to be done by game
+
+        self.remove_tiles(optimal_play.template)
         # return True after successful play or exchange
         return True
+
+    def remove_tiles(self, template):
+        for l in template:
+            if l:
+                self.tiles.remove(l)

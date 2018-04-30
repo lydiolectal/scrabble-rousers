@@ -36,7 +36,9 @@ class Trie:
         x, y = start_seq.x, start_seq.y
         ish = start_seq.ish
         for template in templates:
-            plays.append(StartSequence(x, y, template, ish))
+            # checks that we're not returning blank templates
+            if not all(c is None for c in template):
+                plays.append(StartSequence(x, y, template, ish))
         return plays
 
     def get_words(self, template):
