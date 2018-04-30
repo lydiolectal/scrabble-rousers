@@ -5,15 +5,18 @@ class Ai:
         self.tiles = []
         self.score = 0
 
-    def make_play(self):
+    def make_play(self, board):
         # get starts
-        # get words from starts
-        # if no words, quit!
+        board.get_starts(len(tiles))
+
+        words = []
+        for start in starts:
+            words.extend(trie.get_words_constrained(self.tiles, board))
+        if not words:
+            return False
         # place optimal word (or random at first)
         # take out and replenish tiles
         # return True after successful play or exchange
-        # return False to skip turn.
-        pass
+        return True
 
-    def replenish_tiles(self):
-        pass
+        # return False to skip turn.
