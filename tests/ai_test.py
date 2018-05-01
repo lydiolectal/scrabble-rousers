@@ -24,9 +24,8 @@ class TestAi(unittest.TestCase):
         b = Board(3)
         b.place(["b", "u", "g"], Coord(0, 0), True)
         b.place(["a", "g", "o"], Coord(0, 1), True)
-        b.place(["a", "g"], Coord(0, 2), True)
-        # this next line breaks crosschecks:
-        # b.place(["x", "x"], Coord(0, 2), True)
+        # b.place(["a", "g"], Coord(0, 2), True)
+        b.place(["x", "x"], Coord(0, 2), True)
 
         tiles = ["e", "i", "u", "y"]
         ai = Ai(tiles)

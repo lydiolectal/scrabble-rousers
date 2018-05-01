@@ -74,11 +74,12 @@ class Trie:
         if template != []:
             curspot = template[0]
             if curspot:
+                child_words = []
                 if curspot in node.children:
                     temps = s + curspot
                     child_words = self.get_words_helper(template[1:],
                         node.children[curspot], temps)
-                    return child_words
+                return child_words
             else:
                 words = []
                 for next in node.children:
@@ -98,10 +99,11 @@ class Trie:
         if template != []:
             curspot = template[0]
             if curspot:
+                child_words = []
                 if curspot in node.children:
                     child_words = self.get_chars_helper(template[1:],
                         node.children[curspot], c)
-                    return child_words
+                return child_words
             else:
                 chars = []
                 for next in node.children:
@@ -133,7 +135,6 @@ class Trie:
                     child_words = self.get_words_constrained_helper(temp_start_seq,
                         node.children[curspot], tiles, board, s_list, temps)
             else:
-                # check if this is a valid terminal node
                 if node.is_word:
                     s_list.append(s)
 
