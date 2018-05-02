@@ -22,7 +22,7 @@ class Board:
 
     def is_on_board(self, coord):
         x, y = coord
-        return y >= 0 and y < self.size and x >= 0 and x < self.size
+        return 0 <= y < self.size and 0 <= x < self.size
 
     def get_starts(self, num_tiles):
         starts = []

@@ -3,6 +3,7 @@ import random
 # keeps track of tile bag, and allows players to draw and exchange tiles
 class Bag:
     def __init__(self):
+        # dictionary isn't really random; should be weighted based on tile freq
         self.tiles = {
         "e":12, "a":9, "i":9, "o":8, "n":6, "r":6, "t":6, "l":4, "s":4, "u":4,
         "d":4, "g":3, "b":2, "c":2, "m":2, "p":2, "f":2, "h":2, "v":2, "w":2,
@@ -15,6 +16,7 @@ class Bag:
 
     # return a letter from the Bag inventory, and delete
     # returns False if Bag is empty
+    # TODO: make array and draw from that.
     def draw_tile(self):
         if not(self.has_tiles()):
             return None
