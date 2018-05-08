@@ -38,6 +38,14 @@ class Game:
             # pause!
             time.sleep(3)
 
+    def play_one_move(self, i):
+        players = [self.player1, self.player2]
+        cur_player = players[i]
+        successful_play = cur_player.make_play(self.trie, self.board)
+        if not successful_play:
+            return
+        self.replenish_tiles(cur_player)
+
     def replenish_tiles(self, player):
         to_replen = 7 - len(player.tiles)
         while self.bag.has_tiles() and to_replen > 0:
