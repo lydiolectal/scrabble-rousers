@@ -3,10 +3,7 @@ from src.bag import Bag
 from src.board import Board
 from src.trie import Trie
 
-import time
-
-# to think about:
-# - check if player runs out of tiles and there are no more in bag. if so, quit.
+import time, random
 
 class Game:
 
@@ -21,30 +18,27 @@ class Game:
             tiles2.append(self.bag.draw_tile())
         self.player1 = Ai(tiles1)
         self.player2 = Ai(tiles2)
+        self.cur_player = self.player1
+        self.skipped_turns = 0
 
     def play(self):
-        players = [self.player1, self.player2]
-        i = 0
         while True:
-            cur_player = players[i]
-            successful_play = cur_player.make_play(self.trie, self.board)
-            if not successful_play:
-                break
-                return
-            self.replenish_tiles(cur_player)
-            i = 1 if i == 0 else 0
+            self.play_one_move()
             self.board.print_b()
-            print(cur_player.tiles)
-            # pause!
+            print(self.cur_player.tiles)
+            if self.skipped_turns > 5 or not self.cur_player.tiles:
+                break
             time.sleep(3)
 
-    def play_one_move(self, i):
-        players = [self.player1, self.player2]
-        cur_player = players[i]
-        successful_play = cur_player.make_play(self.trie, self.board)
+    def play_one_move(self):
+        self.cur_player = self.player1 if self.cur_player == self.player2 else self.player2
+        successful_play = self.cur_player.make_play(self.trie, self.board)
         if not successful_play:
-            return
-        self.replenish_tiles(cur_player)
+            self.exchange_tiles()
+            self.skipped_turns += 1
+        else:
+            self.replenish_tiles(self.cur_player)
+            self.skipped_turns = 0
 
     def replenish_tiles(self, player):
         to_replen = 7 - len(player.tiles)
@@ -52,3 +46,17 @@ class Game:
             new_tile = self.bag.draw_tile()
             player.tiles.append(new_tile)
             to_replen -= 1
+
+    def exchange_tiles(self):
+        to_exchange = random.randrange(1, len(self.cur_player.tiles))
+        exchange_list = []
+        while self.bag.has_tiles() and to_exchange > 0:
+            to_remove = choice(self.cur_player.tiles)
+            self.cur_player.tiles.remove(to_remove)
+            exchange_list.append(to_remove)
+            
+            new_tile = self.bag.draw_tile()
+            self.cur_player.tiles.append(new_tile)
+            to_exchange -= 1
+        for t in exchange_list:
+            self.bag.add_tile(t)

@@ -16,12 +16,14 @@ class Bag:
 
     # return a letter from the Bag inventory, and delete
     # returns False if Bag is empty
-    # TODO: make array and draw from that.
     def draw_tile(self):
         if not(self.has_tiles()):
             return None
         else:
-            drawnTile = random.choice(list(self.tiles))
+            tile_list = []
+            for (k, v) in self.tiles.items():
+                tile_list.extend([k] * v)
+            drawnTile = random.choice(tile_list)
             if self.tiles[drawnTile] == 1:
                 del self.tiles[drawnTile]
             else:
@@ -29,7 +31,6 @@ class Bag:
             return drawnTile
 
     def add_tile(self, tile):
-        tile = tile.upper()
         if tile in self.tiles:
             self.tiles[tile] += 1
         else:
