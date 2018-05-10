@@ -1,9 +1,11 @@
 from src.start_seq import StartSequence
 from src.trie_node import TrieNode
+from src.scorer import Scorer
 
 class Trie:
     def __init__(self):
         self.root = TrieNode()
+        self.scorer = Scorer()
 
     def insert(self, s):
         self.insert_helper(self.root, s, 0)
@@ -38,7 +40,10 @@ class Trie:
         ish = start_seq.ish
         for template in templates:
             if not all(c is None for c in template) and len(template) >= dist:
-                plays.append(StartSequence(x, y, template, ish))
+                play = StartSequence(x, y, template, ish)
+                score = self.score_play(play, board)
+                play.points = score
+                plays.append(play)
         return plays
 
     def get_words(self, template):
@@ -57,18 +62,6 @@ class Trie:
         self.get_words_constrained_helper(start_seq, self.root, tiles, board, s_list)
         return s_list
 
-    """
-    Gets words that can be played in a given span on the board.
-    Parameters:
-    -----------
-    template: type
-    node: type
-
-    Returns:
-    --------
-    list_of_strings: type
-
-    """
     def get_words_helper(self, template, node, s = ""):
         # while we still have spaces left to fill
         if template != []:
@@ -123,8 +116,6 @@ class Trie:
 
         if template != []:
             curspot = template[0]
-
-            # otherwise, descend trie
             if curspot:
                 if curspot in node.children:
                     temps = s + [None]
@@ -137,7 +128,6 @@ class Trie:
             else:
                 if node.is_word:
                     s_list.append(s)
-
                 crosscheck = board.crosschecks[curY][curX].v_check if ish else board.crosschecks[curY][curX].h_check
                 to_traverse = list(crosscheck.intersection(set(tiles)))
 
@@ -155,6 +145,24 @@ class Trie:
         else:
             if node.is_word:
                 s_list.append(s)
+
+    def score_play(self, play, board):
+        x, y = play.x, play.y
+        ish = play.ish
+        template = play.template
+        dX, dY = (1, 0) if ish else (0, 1)
+        mult_score = 0
+        factor = 1
+        for c in template:
+            if not c:
+                mult_score += self.scorer.get_score_old(board.tiles[y][x])
+            else:
+                square_score, square_factor = self.scorer.get_score_new(x, y, c)
+                mult_score += square_score
+                factor *= square_factor
+            x += dX
+            y += dY
+        return mult_score * factor
 
     scrabble_words = None
 
