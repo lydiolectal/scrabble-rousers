@@ -1,6 +1,7 @@
 from src.start_seq import StartSequence
 from src.trie_node import TrieNode
 from src.scorer import Scorer
+from src.coord import Coord
 
 class Trie:
     def __init__(self):
@@ -152,6 +153,7 @@ class Trie:
         template = play.template
         dX, dY = (1, 0) if ish else (0, 1)
         mult_score = 0
+        base_score = 0
         factor = 1
         for c in template:
             if not c:
@@ -160,9 +162,26 @@ class Trie:
                 square_score, square_factor = self.scorer.get_score_new(x, y, c)
                 mult_score += square_score
                 factor *= square_factor
+                base_score += self.score_helper(Coord(x, y), board, ish)
             x += dX
             y += dY
-        return mult_score * factor
+        return (mult_score * factor) + base_score
+
+    def score_helper(self, coord, board, ish):
+        base_score = 0
+        dX, dY = (0, 1) if ish else (1, 0)
+        x, y = coord[0] - 1, coord[1] - 1
+        while (x >= 0 and y >= 0) and board.tiles[y][x]:
+
+            base_score += self.scorer.get_score_old(board.tiles[y][x])
+            x -= dX
+            y -= dY
+        x, y = coord[0] + 1, coord[1] + 1
+        while (x < board.size and y < board.size) and board.tiles[y][x]:
+            base_score += self.scorer.get_score_old(board.tiles[y][x])
+            x += dX
+            y += dY
+        return base_score
 
     scrabble_words = None
 

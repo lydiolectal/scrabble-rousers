@@ -77,10 +77,11 @@ class TestTrie(unittest.TestCase):
     def test_score_words(self):
         trieRoot = Trie.words()
         b5 = Board(15)
-        # 6, 7, template, ish
         play = StartSequence(6, 7, ["b", "u", "g"], True)
-
         score = trieRoot.score_play(play, b5)
         self.assertEqual(score, 12)
 
-        # TODO: play a word, then score
+        b5.place(["p", "a", "r", "k"], Coord(7, 5), False)
+        play = StartSequence(1, 4, ["z", "e", "a", "l", "o", "t", "s"], True)
+        score = trieRoot.score_play(play, b5)
+        self.assertEqual(score, 42)
