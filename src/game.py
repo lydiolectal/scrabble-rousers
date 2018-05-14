@@ -26,6 +26,8 @@ class Game:
             self.play_one_move()
             self.board.print_b()
             print(self.cur_player.tiles)
+            print(self.cur_player.recent_score)
+            print("----------")
             if self.skipped_turns > 5 or not self.cur_player.tiles:
                 break
             time.sleep(3)
@@ -54,7 +56,7 @@ class Game:
             to_remove = choice(self.cur_player.tiles)
             self.cur_player.tiles.remove(to_remove)
             exchange_list.append(to_remove)
-            
+
             new_tile = self.bag.draw_tile()
             self.cur_player.tiles.append(new_tile)
             to_exchange -= 1

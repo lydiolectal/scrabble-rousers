@@ -6,6 +6,7 @@ class Ai:
     def __init__(self, tiles):
         self.tiles = tiles
         self.score = 0
+        self.recent_score = 0
 
     def make_play(self, trie, board):
         # get starts
@@ -26,8 +27,8 @@ class Ai:
             Coord(optimal_play.x, optimal_play.y), optimal_play.ish)
 
         self.remove_tiles(optimal_play.template)
-        # return True after successful play or exchange
-        return True
+        self.recent_score = optimal_play.points
+        return optimal_play
 
     def remove_tiles(self, template):
         for l in template:
