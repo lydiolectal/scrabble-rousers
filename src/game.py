@@ -16,8 +16,8 @@ class Game:
         for _ in range(7):
             tiles1.append(self.bag.draw_tile())
             tiles2.append(self.bag.draw_tile())
-        self.player1 = Ai(tiles1)
-        self.player2 = Ai(tiles2)
+        self.player1 = Ai("Player 1", tiles1)
+        self.player2 = Ai("Player 2", tiles2)
         self.cur_player = self.player1
         self.skipped_turns = 0
 
@@ -33,6 +33,8 @@ class Game:
             time.sleep(3)
 
     def play_one_move(self):
+        if self.skipped_turns > 5 or not self.cur_player.tiles:
+            return False
         self.cur_player = self.player1 if self.cur_player == self.player2 else self.player2
         successful_play = self.cur_player.make_play(self.trie, self.board)
         if not successful_play:
@@ -41,6 +43,7 @@ class Game:
         else:
             self.replenish_tiles(self.cur_player)
             self.skipped_turns = 0
+        return True
 
     def replenish_tiles(self, player):
         to_replen = 7 - len(player.tiles)

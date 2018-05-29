@@ -12,7 +12,7 @@ class TestAi(unittest.TestCase):
         b.place(("b", "u", "g"), Coord(1, 0), False)
 
         tiles = ["a", "e", "i", "o", "u", "y"]
-        ai = Ai(tiles)
+        ai = Ai("", tiles)
 
         trie = Trie.words()
 
@@ -28,7 +28,7 @@ class TestAi(unittest.TestCase):
         b.place(["x", "x"], Coord(0, 2), True)
 
         tiles = ["e", "i", "u", "y"]
-        ai = Ai(tiles)
+        ai = Ai("", tiles)
         trie = Trie.words()
 
         successful_play = ai.make_play(trie, b)
@@ -39,7 +39,7 @@ class TestAi(unittest.TestCase):
         b.place(("b", "u", "g"), Coord(1, 0), False)
 
         tiles = ["a", "e", "i", "o", "u", "y"]
-        ai = Ai(tiles)
+        ai = Ai("", tiles)
 
         trie = Trie.words()
 

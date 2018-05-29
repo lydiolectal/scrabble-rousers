@@ -3,7 +3,8 @@ from src.start_seq import StartSequence
 from src.coord import Coord
 
 class Ai:
-    def __init__(self, tiles):
+    def __init__(self, name, tiles):
+        self.name = name
         self.tiles = tiles
         self.score = 0
         self.recent_score = 0

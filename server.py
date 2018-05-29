@@ -4,10 +4,6 @@ from src.game import Game
 app = Flask(__name__)
 game = Game()
 
-# @app.route('/')
-# def root():
-#     return app.send_static_file('index.html')
-
 @app.route('/start', methods = ["GET"])
 def start_game():
     """
@@ -23,15 +19,19 @@ def start_game():
 
 @app.route('/', methods = ["GET"])
 def root():
-
     # TODO: law of Demeter (bug Jordan)
     return render_template("index.html", board = game.board.tiles,
-        tiles = game.cur_player.tiles, score = game.cur_player.recent_score)
+        player = game.cur_player.name, tiles = " ".join(game.cur_player.tiles),
+        score = game.cur_player.recent_score)
 
 @app.route('/', methods = ["POST"])
 def next_move():
-    game.play_one_move()
-    # redirect sends back a response code 302 ("I'm sending you to another location")
-    # one of the headers has "location: /" -- the browser then knows to follow
-    # it by sending a GET request to that URL.
-    return redirect("/")
+    successful_play = game.play_one_move()
+    if successful_play:
+        return redirect("/")
+    else:
+        return redirect("/end")
+
+@app.route('/end', methods = ["GET"])
+def end():
+    return render_template("end.html")
