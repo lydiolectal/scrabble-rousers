@@ -56,7 +56,7 @@ class Game:
         to_exchange = random.randrange(1, len(self.cur_player.tiles))
         exchange_list = []
         while self.bag.has_tiles() and to_exchange > 0:
-            to_remove = choice(self.cur_player.tiles)
+            to_remove = random.choice(self.cur_player.tiles)
             self.cur_player.tiles.remove(to_remove)
             exchange_list.append(to_remove)
 

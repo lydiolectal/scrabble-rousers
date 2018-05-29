@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, redirect
+from flask import Flask, jsonify, render_template, redirect, url_for
 from src.game import Game
 
 app = Flask(__name__)
@@ -30,7 +30,7 @@ def next_move():
     if successful_play:
         return redirect("/")
     else:
-        return redirect("/end")
+        return redirect(url_for("end"))
 
 @app.route('/end', methods = ["GET"])
 def end():
