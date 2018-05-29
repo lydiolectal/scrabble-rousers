@@ -1,0 +1,33 @@
+<!-- TODO: create HTML and add JS that performs a GET request on the http://127.0.0.1:5000/start -->
+<html>
+<head>
+    <title>Scrabblerousers!</title>
+</head>
+<body>
+<p>
+    Hello world!
+</p>
+
+<table>
+    <tbody>
+        {% for row in board %}
+        <tr>
+            {% for square in row %}
+                <td>
+                    {% if square %}
+                        {{ square }}
+                    {% else %}
+                        .
+                    {% endif %}
+                </td>
+
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    <form method = "post" action = "/">
+        <input type = "submit" value = "Next" />
+    </form>
+</body>
+</html>
