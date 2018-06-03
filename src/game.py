@@ -38,7 +38,8 @@ class Game:
         self.cur_player = self.player1 if self.cur_player == self.player2 else self.player2
         successful_play = self.cur_player.make_play(self.trie, self.board)
         if not successful_play:
-            self.exchange_tiles()
+            if len(self.cur_player.tiles) == 7:
+                self.exchange_tiles()
             self.skipped_turns += 1
         else:
             self.replenish_tiles(self.cur_player)

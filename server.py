@@ -3,6 +3,7 @@ from src.game import Game
 
 app = Flask(__name__)
 game = Game()
+game_over = False
 
 @app.route('/start', methods = ["GET"])
 def start_game():
@@ -20,18 +21,21 @@ def start_game():
 @app.route('/', methods = ["GET"])
 def root():
     # TODO: law of Demeter (bug Jordan)
-    return render_template("index.html", board = game.board.tiles,
-        player = game.cur_player.name, tiles = " ".join(game.cur_player.tiles),
-        score = game.cur_player.recent_score)
+    if game_over:
+        return render_template("end.html")
+    else:
+        return render_template("index.html", board = game.board.tiles,
+            player = game.cur_player.name, tiles = " ".join(game.cur_player.tiles),
+            score = game.cur_player.recent_score)
 
 @app.route('/', methods = ["POST"])
 def next_move():
     successful_play = game.play_one_move()
-    if successful_play:
-        return redirect("/")
-    else:
-        return redirect(url_for("end"))
+    if not successful_play:
+        global game_over
+        game_over = True
+    return redirect("/")
 
-@app.route('/end', methods = ["GET"])
-def end():
-    return render_template("end.html")
+# @app.route('/end', methods = ["GET"])
+# def end():
+#
