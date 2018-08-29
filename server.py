@@ -5,18 +5,18 @@ app = Flask(__name__)
 game = Game()
 game_over = False
 
-@app.route('/start', methods = ["GET"])
-def start_game():
-    """
-    Initialize game and return JSON needed to render beginning game state.
-    """
-    game = Game()
-    game_state = {
-                    "state": game.board.tiles,
-                    "player1_tiles": game.player1.tiles,
-                    "player2_tiles": game.player2.tiles,
-                 }
-    return jsonify(game_state)
+# @app.route('/start', methods = ["GET"])
+# def start_game():
+#     """
+#     Initialize game and return JSON needed to render beginning game state.
+#     """
+#     game = Game()
+#     game_state = {
+#                     "state": game.board.tiles,
+#                     "player1_tiles": game.player1.tiles,
+#                     "player2_tiles": game.player2.tiles,
+#                  }
+#     return jsonify(game_state)
 
 @app.route('/', methods = ["GET"])
 def root():
@@ -30,12 +30,14 @@ def root():
 
 @app.route('/', methods = ["POST"])
 def next_move():
-    successful_play = game.play_one_move()
-    if not successful_play:
-        global game_over
-        game_over = True
-    return redirect("/")
-
-# @app.route('/end', methods = ["GET"])
-# def end():
-#
+    global game_over
+    if game_over:
+        global game
+        game = Game()
+        game_over = False
+        return redirect("/")
+    else:
+        successful_play = game.play_one_move()
+        if not successful_play:
+            game_over = True
+        return redirect("/")

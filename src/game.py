@@ -35,6 +35,7 @@ class Game:
     def play_one_move(self):
         if self.skipped_turns > 5 or not self.cur_player.tiles:
             return False
+        # TODO: track turn number and % turn number instead of doing this
         self.cur_player = self.player1 if self.cur_player == self.player2 else self.player2
         successful_play = self.cur_player.make_play(self.trie, self.board)
         if not successful_play:
