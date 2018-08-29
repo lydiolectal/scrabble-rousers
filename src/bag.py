@@ -15,10 +15,9 @@ class Bag:
         if not(self.has_tiles()):
             return None
         else:
-            tile_list = []
-            for (k, v) in self.tiles.items():
-                tile_list.extend([k] * v)
-            drawnTile = random.choice(tile_list)
+            keys = list(self.tiles.keys())
+            values = list(self.tiles.values())
+            drawnTile = random.choices(keys, values)[0]
             if self.tiles[drawnTile] == 1:
                 del self.tiles[drawnTile]
             else:
